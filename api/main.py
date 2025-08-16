@@ -3,7 +3,7 @@ from pydantic import BaseModel
 from typing import List
 import os
 
-from Functions.add_log_entry import add_log_entry
+from .add_log_entry import add_log_entry
 
 class ResumeEntry(BaseModel):
     date: str
