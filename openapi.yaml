@@ -1,60 +1,70 @@
 openapi: 3.1.0
 info:
-  title: Resume Knowledge Base API
+  title: Rini Log Entry API
+  description: API to submit structured log entries for impactful work or resume achievements.
   version: 1.0.0
 servers:
-  - url: https://resume-knowledge-base.onrender.com
+  - url: https://rini-sandbox.site
     description: Production server
 paths:
   /log-entry:
     post:
-      summary: Create a log entry
-      description: Create a new resume log entry and commit it to the repository.
+      operationId: createLogEntry
+      summary: Create a new log entry
+      description: Submits a detailed log entry including metadata like tags, visibility, and impact level.
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ResumeEntry'
-      responses:
-        '200':
-          description: Result of log entry creation
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  result:
+              type: object
+              required:
+                - date
+                - title
+                - description
+                - tags
+                - impact_level
+                - visibility
+                - resume_bullet
+              properties:
+                date:
+                  type: string
+                  format: date
+                  example: 2025-08-16
+                title:
+                  type: string
+                  example: Automated Self-Service Power Platform Operating Model at Scale
+                description:
+                  type: string
+                  example: Led the development of a fully automated self-service operating model for Power Platform...
+                tags:
+                  type: array
+                  items:
                     type: string
-components:
-  schemas:
-    ResumeEntry:
-      type: object
-      required:
-        - date
-        - title
-        - description
-        - tags
-        - impact_level
-        - visibility
-        - resume_bullet
-      properties:
-        date:
-          type: string
-          format: date
-        title:
-          type: string
-        description:
-          type: string
-        tags:
-          type: array
-          items:
-            type: string
-        impact_level:
-          type: string
-        visibility:
-          type: array
-          items:
-            type: string
-        resume_bullet:
-          type: string
+                  example:
+                    - Power Platform
+                    - DevOps
+                    - Azure Pipelines
+                    - GitHub Actions
+                    - Terraform
+                impact_level:
+                  type: string
+                  example: Enterprise Scale
+                visibility:
+                  type: array
+                  items:
+                    type: string
+                  example:
+                    - C-Suite
+                resume_bullet:
+                  type: string
+                  example: Engineered a fully automated self-service Power Platform operating model using DevOps pipelines...
+      responses:
+        "201":
+          description: Log entry created successfully
+        "400":
+          description: Invalid input
+        "404":
+          description: Not found or awaiting external approval (e.g. OpenAI action not approved)
+        "500":
+          description: Server error
