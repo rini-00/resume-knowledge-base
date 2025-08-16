@@ -62,7 +62,9 @@ def add_log_entry(date, title, description, tags, impact_level, visibility, resu
         if commit_result.returncode != 0:
             return f"No changes to commit: {commit_result.stderr.decode().strip()}"
 
-        github_token = "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"
+        github_token = os.getenv("GITHUB_TOKEN")
+        if not github_token:
+            return "GitHub token not provided in GITHUB_TOKEN"
 
         repo_url = f"https://{github_token}@github.com/rini-00/resume-knowledge-base.git"
 
