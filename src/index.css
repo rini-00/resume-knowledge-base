@@ -1,40 +1,223 @@
+@layer utilities {
+  /* Custom spacing utilities */
+  .space-micro { gap: var(--space-xs); }
+  .space-small { gap: var(--space-sm); }
+  .space-medium { gap: var(--space-md); }
+  .space-large { gap: var(--space-lg); }
+  .space-xl { gap: var(--space-xl); }
+  .space-2xl { gap: var(--space-2xl); }
+  .space-3xl { gap: var(--space-3xl); }
+  
+  /* Font family utilities */
+  .font-aptos { font-family: "Aptos", system-ui, sans-serif; }
+  .font-aptos-mono { font-family: "Aptos Mono", "SF Mono", Monaco, monospace; }
+  
+  /* Font weight utilities for Aptos */
+  .font-light { font-weight: 400; }
+  .font-normal { font-weight: 450; }
+  .font-medium { font-weight: 500; }
+  .font-semibold { font-weight: 550; }
+  .font-bold { font-weight: 600; }
+  .font-extra-bold { font-weight: 650; }
+  .font-black { font-weight: 700; }
+  .font-heavy { font-weight: 800; }
+  
+  /* Text size utilities with proper line heights */
+  .text-caption {
+    font-size: 13px;
+    line-height: 1.4;
+  }
+  
+  .text-small {
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  
+  .text-body-secondary {
+    font-size: 15px;
+    line-height: 1.6;
+  }
+  
+  .text-body {
+    font-size: 16px;
+    line-height: 1.6;
+  }
+  
+  .text-button {
+    font-size: 15px;
+    line-height: 1.4;
+  }
+  
+  /* Border radius utilities */
+  .rounded-subtle { border-radius: var(--radius-sm); }
+  .rounded-standard { border-radius: var(--radius-md); }
+  .rounded-medium { border-radius: var(--radius-lg); }
+  .rounded-large { border-radius: var(--radius-xl); }
+  .rounded-xl-custom { border-radius: var(--radius-2xl); }
+  
+  /* Shadow utilities */
+  .shadow-subtle { box-shadow: var(--shadow-sm); }
+  .shadow-standard { box-shadow: var(--shadow-md); }
+  .shadow-elevated { box-shadow: var(--shadow-lg); }
+  .shadow-prominent { box-shadow: var(--shadow-xl); }
+  
+  /* Color utilities using custom properties */
+  .bg-background { background-color: var(--color-background); }
+  .bg-background-secondary { background-color: var(--color-background-secondary); }
+  .bg-surface { background-color: var(--color-surface); }
+  .bg-surface-elevated { background-color: var(--color-surface-elevated); }
+  
+  .text-primary { color: var(--color-text-primary); }
+  .text-secondary { color: var(--color-text-secondary); }
+  .text-tertiary { color: var(--color-text-tertiary); }
+  .text-disabled { color: var(--color-text-disabled); }
+  .text-inverse { color: var(--color-text-inverse); }
+  
+  .border-primary { border-color: var(--color-border-primary); }
+  .border-subtle { border-color: var(--color-border-subtle); }
+  .border-hover { border-color: var(--color-border-hover); }
+  
+  /* Animation utilities */
+  .animate-fade-in {
+    animation: fadeIn 0.3s ease-in-out;
+  }
+  
+  .animate-slide-up {
+    animation: slideUp 0.4s ease-out;
+  }
+  
+  .animate-pulse-slow {
+    animation: pulseSlow 2s ease-in-out infinite;
+  }
+  
+  /* Responsive text utilities */
+  @screen sm {
+    .text-responsive-lg {
+      font-size: 18px;
+    }
+    
+    .text-responsive-xl {
+      font-size: 20px;
+    }
+    
+    .text-responsive-2xl {
+      font-size: 24px;
+    }
+  }
+  
+  /* Aspect ratio utilities */
+  .aspect-square { aspect-ratio: 1 / 1; }
+  .aspect-video { aspect-ratio: 16 / 9; }
+  .aspect-card { aspect-ratio: 4 / 3; }
+  
+  /* Container query utilities (for future use) */
+  .container-sm { max-width: 640px; }
+  .container-md { max-width: 768px; }
+  .container-lg { max-width: 1024px; }
+  .container-xl { max-width: 1280px; }
+  .container-2xl { max-width: 1536px; }
+}
+
+/* Keyframe animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulseSlow {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+/* Print styles */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  
+  .card,
+  .card-elevated,
+  .field-card {
+    box-shadow: none !important;
+    border: 1px solid #e2e8f0 !important;
+  }
+}@import url('https://fonts.googleapis.com/css2?family=Aptos:wght@400;450;500;550;600;650;700;800&family=Aptos+Mono:wght@400;500;600&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-@layer base {
-  body {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
-    line-height: 1.5;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-  }
-}
-
-@layer components {
-  .gradient-bg {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  }
+:root {
+  /* Colors - Enhanced Background Palette */
+  --color-background: #f1f5f9;
+  --color-background-secondary: #e2e8f0;
+  --color-surface: #ffffff;
+  --color-surface-elevated: #f8fafc;
+  --color-contrast-area: #cbd5e1;
   
-  .glass-effect {
-    backdrop-filter: blur(10px);
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-  }
+  /* Accent Colors */
+  --color-primary: #6366f1;
+  --color-primary-light: #a5b4fc;
+  --color-success: #22c55e;
+  --color-success-light: #86efac;
+  --color-warning: #f59e0b;
+  --color-warning-light: #fcd34d;
+  --color-info: #3b82f6;
+  --color-error: #ef4444;
   
-  .card-shadow {
-    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-  }
+  /* Text Colors - High Contrast */
+  --color-text-primary: #0f172a;
+  --color-text-secondary: #334155;
+  --color-text-tertiary: #64748b;
+  --color-text-disabled: #94a3b8;
+  --color-text-inverse: #ffffff;
   
-  .input-focus {
-    @apply focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200;
-  }
+  /* Border Colors */
+  --color-border-primary: #cbd5e1;
+  --color-border-subtle: #e2e8f0;
+  --color-border-hover: #94a3b8;
   
-  .btn-primary {
-    @apply bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-medium py-2 px-6 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 transform hover:-translate-y-0.5;
-  }
+  /* Spacing Scale */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+  --space-2xl: 48px;
+  --space-3xl: 64px;
   
-  .btn-secondary {
-    @apply bg-white text-gray-700 hover:bg-gray-50 border border-gray-300 font-medium py-2 px-6 rounded-lg shadow-sm hover:shadow-md transition-all duration-200;
-  }
+  /* Border Radius */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-2xl: 24px;
+  --radius-full: 50%;
+  
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.05);
+  --shadow-md: 0 4px 6px rgba(15, 23, 42, 0.07);
+  --shadow-lg: 0 10px 15px rgba(15, 23, 42, 0.1);
+  --shadow-xl: 0 20px 25px rgba(15, 23, 42, 0.15);
 }
