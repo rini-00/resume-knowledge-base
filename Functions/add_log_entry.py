@@ -64,7 +64,7 @@ def add_log_entry(date, title, description, tags, impact_level, visibility, resu
 
         github_token = "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"
 
-        repo_url = f"https://{github_token}@github.com/rinikrishnan_kyndryl/resume-knowledge-base.git"
+        repo_url = f"https://{github_token}@github.com/rini-00/resume-knowledge-base.git"
 
         # Ensure the repository has an ``origin`` remote before attempting to
         # set its URL.  In some environments the repository may be cloned
