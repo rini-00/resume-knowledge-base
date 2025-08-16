@@ -1,0 +1,60 @@
+openapi: 3.1.0
+info:
+  title: Resume Knowledge Base API
+  version: 1.0.0
+servers:
+  - url: https://resume-knowledge-base.onrender.com
+    description: Production server
+paths:
+  /log-entry:
+    post:
+      summary: Create a log entry
+      description: Create a new resume log entry and commit it to the repository.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResumeEntry'
+      responses:
+        '200':
+          description: Result of log entry creation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: string
+components:
+  schemas:
+    ResumeEntry:
+      type: object
+      required:
+        - date
+        - title
+        - description
+        - tags
+        - impact_level
+        - visibility
+        - resume_bullet
+      properties:
+        date:
+          type: string
+          format: date
+        title:
+          type: string
+        description:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        impact_level:
+          type: string
+        visibility:
+          type: array
+          items:
+            type: string
+        resume_bullet:
+          type: string
