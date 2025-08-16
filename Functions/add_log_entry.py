@@ -50,7 +50,8 @@ def add_log_entry(date, title, description, tags, impact_level, visibility, resu
         with path.open("w", encoding="utf-8") as f:
             json.dump(entry, f, indent=2)
             f.write("\n")
-
+        subprocess.run(["git", "config", "--global", "user.name", "Rini Krishnan"], check=True)
+        subprocess.run(["git", "config", "--global", "user.email", "rini.krishnan@outlook.com"], check=True)
         subprocess.run(["git", "checkout", "main"], check=True, capture_output=True)
         subprocess.run(["git", "add", str(path)], check=True, capture_output=True)
         commit_msg = f"Add log entry: {title}"
