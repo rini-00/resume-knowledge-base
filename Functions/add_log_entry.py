@@ -56,6 +56,17 @@ def add_log_entry(date, title, description, tags, impact_level, visibility, resu
         subprocess.run(["git", "add", str(path)], check=True, capture_output=True)
         commit_msg = f"Add log entry: {title}"
         subprocess.run(["git", "commit", "-m", commit_msg], check=True, capture_output=True)
+
+        github_token = os.environ["GITHUB_TOKEN"]
+        subprocess.run(
+            [
+                "git", "remote", "set-url", "origin",
+                f"https://{github_token}@github.com/rinikrishnan_kyndryl/resume-knowledge-base.git"
+            ],
+            check=True,
+            capture_output=True
+        )
+
         subprocess.run(["git", "push", "origin", "main"], check=True, capture_output=True)
         return f"Log entry written to {path} and committed to main branch."
     except Exception as exc:  # broad exception to capture subprocess errors too
