@@ -10,15 +10,13 @@ import {
   FileText,
   Sparkles,
   Brain,
+  ArrowRight,
+  ArrowLeft,
+  Zap,
 } from 'lucide-react';
 
-// A user-interface component that helps structure resume achievements.
-// The OpenAI API key has been replaced with a placeholder so that the
-// consumer of this component can provide the key via environment variables
-// or other secure means.
-
 const ResumeLogger = () => {
-  const [stage, setStage] = useState('reflection'); // reflection, input, processing, review, confirm, success
+  const [stage, setStage] = useState('reflection');
   const [userInput, setUserInput] = useState('');
   const [structuredData, setStructuredData] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -43,11 +41,10 @@ const ResumeLogger = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          // Replace with a real key or environment variable when deploying.
           Authorization: `Bearer ${process.env.REACT_APP_OPENAI_API_KEY}`,
         },
         body: JSON.stringify({
-          model: 'gpt-5-mini',
+          model: 'gpt-4o-mini',
           messages: [
             {
               role: 'system',
@@ -70,7 +67,6 @@ const ResumeLogger = () => {
       };
     } catch (error) {
       console.error('OpenAI API Error:', error);
-      // Fallback to basic parsing if API fails
       return {
         date: new Date().toISOString().split('T')[0],
         title:
@@ -86,45 +82,6 @@ const ResumeLogger = () => {
     }
   };
 
-  const generateResumeBullet = (description, tags, impactLevel) => {
-    // Extract key action words and results
-    const actionWords = [
-      'built',
-      'created',
-      'developed',
-      'implemented',
-      'designed',
-      'led',
-      'managed',
-      'optimized',
-      'automated',
-      'delivered',
-      'launched',
-      'engineered',
-      'established',
-    ];
-    const lowerDesc = description.toLowerCase();
-
-    let action = 'Developed';
-    actionWords.forEach((word) => {
-      if (lowerDesc.includes(word)) {
-        action = word.charAt(0).toUpperCase() + word.slice(1);
-      }
-    });
-
-    // Create outcome-focused bullet
-    const mainTech = tags.slice(0, 2).join(' and ');
-    const bullet = `${action} ${mainTech.toLowerCase()}-based solution that ${description
-      .split('.')[0]
-      .toLowerCase()
-      .replace(
-        /^(built|created|developed|implemented|designed|led|managed|optimized|automated|delivered|launched|engineered|established)\s*/i,
-        ''
-      )}.`;
-
-    return bullet.length > 150 ? `${bullet.substring(0, 147)}...` : bullet;
-  };
-
   const handleInputSubmit = () => {
     if (userInput.trim()) {
       setStage('processing');
@@ -132,7 +89,6 @@ const ResumeLogger = () => {
     }
   };
 
-  // Handle the actual API call in useEffect to ensure proper re-rendering
   useEffect(() => {
     const processInput = async () => {
       if (shouldProcess && stage === 'processing') {
@@ -154,7 +110,6 @@ const ResumeLogger = () => {
 
   const handleFieldEdit = (field, value) => {
     if (field === 'tags' || field === 'visibility') {
-      // Handle array fields
       const arrayValue =
         typeof value === 'string'
           ? value
@@ -197,45 +152,75 @@ const ResumeLogger = () => {
     setApiResponse('');
   };
 
+  const getImpactColor = (level) => {
+    const colors = {
+      'Exploratory': 'bg-blue-100 text-blue-800',
+      'In Progress': 'bg-yellow-100 text-yellow-800',
+      'Confirmed': 'bg-green-100 text-green-800',
+      'Strategic': 'bg-purple-100 text-purple-800',
+      'Enterprise Scale': 'bg-red-100 text-red-800',
+    };
+    return colors[level] || 'bg-gray-100 text-gray-800';
+  };
+
   if (stage === 'reflection' || stage === 'input') {
     return (
-      <div className="max-w-2xl mx-auto p-6 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl shadow-lg">
-        <div className="text-center mb-6">
-          <Sparkles className="w-8 h-8 text-indigo-600 mx-auto mb-3" />
-          <h1 className="text-2xl font-bold text-gray-800 mb-2">
-            Resume Achievement Logger
-          </h1>
-          <p className="text-gray-600">
-            Capture your accomplishments with intelligent structuring
-          </p>
-        </div>
-
-        <div className="bg-white rounded-lg p-6 shadow-sm">
-          <div className="flex items-start space-x-3 mb-4">
-            <div className="w-2 h-2 bg-indigo-600 rounded-full mt-3"></div>
-            <p className="text-lg text-gray-700 font-medium">
-              {currentQuestion}
-            </p>
+      <div className="w-full max-w-3xl mx-auto animate-fade-in">
+        <div className="card-shadow bg-white rounded-2xl overflow-hidden">
+          {/* Header */}
+          <div className="gradient-bg px-8 py-6 text-white">
+            <div className="flex items-center space-x-3 mb-4">
+              <div className="p-2 bg-white/20 rounded-lg">
+                <Sparkles className="w-6 h-6" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold">Resume Achievement Logger</h1>
+                <p className="text-white/90 text-sm">Capture your accomplishments with intelligent structuring</p>
+              </div>
+            </div>
           </div>
 
-          <textarea
-            value={userInput}
-            onChange={(e) => setUserInput(e.target.value)}
-            placeholder="Share your thoughts freely... I'll help structure this into a professional achievement record."
-            className="w-full h-32 p-4 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none"
-          />
+          {/* Content */}
+          <div className="p-8">
+            <div className="mb-6">
+              <div className="flex items-start space-x-4 p-6 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl border border-indigo-100">
+                <div className="flex-shrink-0 w-3 h-3 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full mt-2"></div>
+                <div>
+                  <p className="text-lg font-medium text-gray-800 leading-relaxed">
+                    {currentQuestion}
+                  </p>
+                  <p className="text-sm text-gray-600 mt-2">
+                    Share your thoughts freely — I'll help structure this into a professional achievement record.
+                  </p>
+                </div>
+              </div>
+            </div>
 
-          <button
-            onClick={handleInputSubmit}
-            disabled={stage === 'processing' || !userInput.trim()}
-            className="mt-4 flex items-center space-x-2 bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-          >
-            <Brain className="w-4 h-4" />
-            <span>{stage === 'processing' ? 'Analyzing...' : 'Analyze with AI'}</span>
-          </button>
+            <div className="space-y-4">
+              <textarea
+                value={userInput}
+                onChange={(e) => setUserInput(e.target.value)}
+                placeholder="Tell me about your recent accomplishment..."
+                className="w-full h-32 p-4 border-2 border-gray-200 rounded-xl input-focus resize-none text-gray-700 placeholder-gray-400"
+                style={{ minHeight: '120px' }}
+              />
 
-          {/* Debug info */}
-          <div className="mt-2 text-xs text-gray-500">Current stage: {stage}</div>
+              <div className="flex items-center justify-between">
+                <div className="text-sm text-gray-500">
+                  Stage: <span className="font-medium text-indigo-600">{stage}</span>
+                </div>
+                <button
+                  onClick={handleInputSubmit}
+                  disabled={stage === 'processing' || !userInput.trim()}
+                  className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+                >
+                  <Brain className="w-4 h-4" />
+                  <span>{stage === 'processing' ? 'Analyzing...' : 'Analyze with AI'}</span>
+                  {stage !== 'processing' && <ArrowRight className="w-4 h-4" />}
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -243,17 +228,29 @@ const ResumeLogger = () => {
 
   if (stage === 'processing') {
     return (
-      <div className="max-w-2xl mx-auto p-6 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl shadow-lg">
-        <div className="text-center">
-          <Brain className="w-8 h-8 text-indigo-600 mx-auto mb-3 animate-pulse" />
+      <div className="w-full max-w-2xl mx-auto animate-fade-in">
+        <div className="card-shadow bg-white rounded-2xl p-12 text-center">
+          <div className="mb-6">
+            <div className="inline-flex p-4 bg-indigo-50 rounded-full">
+              <Brain className="w-8 h-8 text-indigo-600 animate-pulse-slow" />
+            </div>
+          </div>
           <h2 className="text-2xl font-bold text-gray-800 mb-2">
-            Analyzing your input...
+            Analyzing your achievement...
           </h2>
-          <p className="text-gray-600 mb-6">
-            Using GPT-5 Mini to structure your achievement
+          <p className="text-gray-600 mb-8">
+            Using GPT-4 to intelligently structure your accomplishment
           </p>
           <div className="flex justify-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+            <div className="flex space-x-2">
+              {[0, 1, 2].map((i) => (
+                <div
+                  key={i}
+                  className="w-3 h-3 bg-indigo-600 rounded-full animate-pulse"
+                  style={{ animationDelay: `${i * 0.2}s` }}
+                ></div>
+              ))}
+            </div>
           </div>
         </div>
       </div>
@@ -262,261 +259,270 @@ const ResumeLogger = () => {
 
   if (stage === 'review') {
     return (
-      <div className="max-w-4xl mx-auto p-6 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl shadow-lg">
-        <div className="text-center mb-6">
-          <CheckCircle className="w-8 h-8 text-green-600 mx-auto mb-3" />
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">
-            Review Your Achievement
-          </h2>
-          <p className="text-gray-600">
-            Here's what I captured — feel free to confirm or make edits:
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Title */}
-          <div className="bg-white rounded-lg p-4 shadow-sm">
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center space-x-2">
-                <FileText className="w-4 h-4 text-indigo-600" />
-                <label className="font-semibold text-gray-700">Title</label>
+      <div className="w-full max-w-6xl mx-auto animate-slide-up">
+        <div className="card-shadow bg-white rounded-2xl overflow-hidden">
+          {/* Header */}
+          <div className="bg-gradient-to-r from-green-500 to-emerald-600 px-8 py-6 text-white">
+            <div className="flex items-center space-x-3">
+              <div className="p-2 bg-white/20 rounded-lg">
+                <CheckCircle className="w-6 h-6" />
               </div>
-              <button
-                onClick={() =>
-                  setEditField(editField === 'title' ? null : 'title')
-                }
-                className="text-indigo-600 hover:text-indigo-800"
-              >
-                <Edit3 className="w-4 h-4" />
-              </button>
+              <div>
+                <h2 className="text-2xl font-bold">Review Your Achievement</h2>
+                <p className="text-white/90 text-sm">Confirm or edit the structured data below</p>
+              </div>
             </div>
-            {editField === 'title' ? (
-              <input
-                type="text"
-                value={structuredData.title}
-                onChange={(e) => handleFieldEdit('title', e.target.value)}
-                className="w-full p-2 border border-gray-200 rounded focus:ring-2 focus:ring-indigo-500"
-                onBlur={() => setEditField(null)}
-                autoFocus
-              />
-            ) : (
-              <p className="text-gray-800">{structuredData.title}</p>
-            )}
           </div>
 
-          {/* Date */}
-          <div className="bg-white rounded-lg p-4 shadow-sm">
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center space-x-2">
-                <Calendar className="w-4 h-4 text-indigo-600" />
-                <label className="font-semibold text-gray-700">Date</label>
-              </div>
-              <button
-                onClick={() => setEditField(editField === 'date' ? null : 'date')}
-                className="text-indigo-600 hover:text-indigo-800"
-              >
-                <Edit3 className="w-4 h-4" />
-              </button>
-            </div>
-            {editField === 'date' ? (
-              <input
-                type="date"
-                value={structuredData.date}
-                onChange={(e) => handleFieldEdit('date', e.target.value)}
-                className="w-full p-2 border border-gray-200 rounded focus:ring-2 focus:ring-indigo-500"
-                onBlur={() => setEditField(null)}
-                autoFocus
-              />
-            ) : (
-              <p className="text-gray-800">{structuredData.date}</p>
-            )}
-          </div>
-
-          {/* Tags */}
-          <div className="bg-white rounded-lg p-4 shadow-sm">
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center space-x-2">
-                <Tag className="w-4 h-4 text-indigo-600" />
-                <label className="font-semibold text-gray-700">Tags</label>
-              </div>
-              <button
-                onClick={() => setEditField(editField === 'tags' ? null : 'tags')}
-                className="text-indigo-600 hover:text-indigo-800"
-              >
-                <Edit3 className="w-4 h-4" />
-              </button>
-            </div>
-            {editField === 'tags' ? (
-              <input
-                type="text"
-                value={structuredData.tags.join(', ')}
-                onChange={(e) => handleFieldEdit('tags', e.target.value)}
-                className="w-full p-2 border border-gray-200 rounded focus:ring-2 focus:ring-indigo-500"
-                placeholder="Comma-separated tags"
-                onBlur={() => setEditField(null)}
-                autoFocus
-              />
-            ) : (
-              <div className="flex flex-wrap gap-2">
-                {structuredData.tags.map((tag, index) => (
-                  <span
-                    key={index}
-                    className="bg-indigo-100 text-indigo-800 px-2 py-1 rounded-full text-sm"
+          {/* Content */}
+          <div className="p-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+              {/* Title */}
+              <div className="bg-gray-50 rounded-xl p-6 hover:bg-gray-100 transition-colors">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center space-x-2">
+                    <FileText className="w-5 h-5 text-indigo-600" />
+                    <label className="font-semibold text-gray-800">Title</label>
+                  </div>
+                  <button
+                    onClick={() => setEditField(editField === 'title' ? null : 'title')}
+                    className="p-1.5 text-indigo-600 hover:bg-indigo-100 rounded-lg transition-colors"
                   >
-                    {tag}
-                  </span>
-                ))}
+                    <Edit3 className="w-4 h-4" />
+                  </button>
+                </div>
+                {editField === 'title' ? (
+                  <input
+                    type="text"
+                    value={structuredData.title}
+                    onChange={(e) => handleFieldEdit('title', e.target.value)}
+                    className="w-full p-3 border-2 border-indigo-200 rounded-lg input-focus"
+                    onBlur={() => setEditField(null)}
+                    autoFocus
+                  />
+                ) : (
+                  <p className="text-gray-800 font-medium">{structuredData.title}</p>
+                )}
               </div>
-            )}
-          </div>
 
-          {/* Impact Level */}
-          <div className="bg-white rounded-lg p-4 shadow-sm">
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center space-x-2">
-                <Target className="w-4 h-4 text-indigo-600" />
-                <label className="font-semibold text-gray-700">Impact Level</label>
-              </div>
-              <button
-                onClick={() =>
-                  setEditField(editField === 'impact_level' ? null : 'impact_level')
-                }
-                className="text-indigo-600 hover:text-indigo-800"
-              >
-                <Edit3 className="w-4 h-4" />
-              </button>
-            </div>
-            {editField === 'impact_level' ? (
-              <select
-                value={structuredData.impact_level}
-                onChange={(e) => handleFieldEdit('impact_level', e.target.value)}
-                className="w-full p-2 border border-gray-200 rounded focus:ring-2 focus:ring-indigo-500"
-                onBlur={() => setEditField(null)}
-                autoFocus
-              >
-                <option value="Exploratory">Exploratory</option>
-                <option value="In Progress">In Progress</option>
-                <option value="Confirmed">Confirmed</option>
-                <option value="Strategic">Strategic</option>
-                <option value="Enterprise Scale">Enterprise Scale</option>
-              </select>
-            ) : (
-              <span className="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm font-medium">
-                {structuredData.impact_level}
-              </span>
-            )}
-          </div>
-
-          {/* Visibility */}
-          <div className="bg-white rounded-lg p-4 shadow-sm">
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center space-x-2">
-                <Eye className="w-4 h-4 text-indigo-600" />
-                <label className="font-semibold text-gray-700">Visibility</label>
-              </div>
-              <button
-                onClick={() =>
-                  setEditField(editField === 'visibility' ? null : 'visibility')
-                }
-                className="text-indigo-600 hover:text-indigo-800"
-              >
-                <Edit3 className="w-4 h-4" />
-              </button>
-            </div>
-            {editField === 'visibility' ? (
-              <input
-                type="text"
-                value={structuredData.visibility.join(', ')}
-                onChange={(e) => handleFieldEdit('visibility', e.target.value)}
-                className="w-full p-2 border border-gray-200 rounded focus:ring-2 focus:ring-indigo-500"
-                placeholder="Comma-separated audiences"
-                onBlur={() => setEditField(null)}
-                autoFocus
-              />
-            ) : (
-              <div className="flex flex-wrap gap-2">
-                {structuredData.visibility.map((audience, index) => (
-                  <span
-                    key={index}
-                    className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-sm"
+              {/* Date */}
+              <div className="bg-gray-50 rounded-xl p-6 hover:bg-gray-100 transition-colors">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center space-x-2">
+                    <Calendar className="w-5 h-5 text-indigo-600" />
+                    <label className="font-semibold text-gray-800">Date</label>
+                  </div>
+                  <button
+                    onClick={() => setEditField(editField === 'date' ? null : 'date')}
+                    className="p-1.5 text-indigo-600 hover:bg-indigo-100 rounded-lg transition-colors"
                   >
-                    {audience}
-                  </span>
-                ))}
+                    <Edit3 className="w-4 h-4" />
+                  </button>
+                </div>
+                {editField === 'date' ? (
+                  <input
+                    type="date"
+                    value={structuredData.date}
+                    onChange={(e) => handleFieldEdit('date', e.target.value)}
+                    className="w-full p-3 border-2 border-indigo-200 rounded-lg input-focus"
+                    onBlur={() => setEditField(null)}
+                    autoFocus
+                  />
+                ) : (
+                  <p className="text-gray-800 font-medium">{structuredData.date}</p>
+                )}
               </div>
-            )}
-          </div>
-        </div>
 
-        {/* Description */}
-        <div className="mt-6 bg-white rounded-lg p-4 shadow-sm">
-          <div className="flex items-center justify-between mb-2">
-            <label className="font-semibold text-gray-700">Description</label>
-            <button
-              onClick={() =>
-                setEditField(editField === 'description' ? null : 'description')
-              }
-              className="text-indigo-600 hover:text-indigo-800"
-            >
-              <Edit3 className="w-4 h-4" />
-            </button>
-          </div>
-          {editField === 'description' ? (
-            <textarea
-              value={structuredData.description}
-              onChange={(e) => handleFieldEdit('description', e.target.value)}
-              className="w-full h-24 p-2 border border-gray-200 rounded focus:ring-2 focus:ring-indigo-500 resize-none"
-              onBlur={() => setEditField(null)}
-              autoFocus
-            />
-          ) : (
-            <p className="text-gray-800">{structuredData.description}</p>
-          )}
-        </div>
+              {/* Tags */}
+              <div className="bg-gray-50 rounded-xl p-6 hover:bg-gray-100 transition-colors">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center space-x-2">
+                    <Tag className="w-5 h-5 text-indigo-600" />
+                    <label className="font-semibold text-gray-800">Tags</label>
+                  </div>
+                  <button
+                    onClick={() => setEditField(editField === 'tags' ? null : 'tags')}
+                    className="p-1.5 text-indigo-600 hover:bg-indigo-100 rounded-lg transition-colors"
+                  >
+                    <Edit3 className="w-4 h-4" />
+                  </button>
+                </div>
+                {editField === 'tags' ? (
+                  <input
+                    type="text"
+                    value={structuredData.tags?.join(', ') || ''}
+                    onChange={(e) => handleFieldEdit('tags', e.target.value)}
+                    className="w-full p-3 border-2 border-indigo-200 rounded-lg input-focus"
+                    placeholder="Comma-separated tags"
+                    onBlur={() => setEditField(null)}
+                    autoFocus
+                  />
+                ) : (
+                  <div className="flex flex-wrap gap-2">
+                    {structuredData.tags?.map((tag, index) => (
+                      <span
+                        key={index}
+                        className="bg-indigo-100 text-indigo-800 px-3 py-1 rounded-full text-sm font-medium"
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
 
-        {/* Resume Bullet */}
-        <div className="mt-6 bg-white rounded-lg p-4 shadow-sm">
-          <div className="flex items-center justify-between mb-2">
-            <label className="font-semibold text-gray-700">Resume Bullet</label>
-            <button
-              onClick={() =>
-                setEditField(editField === 'resume_bullet' ? null : 'resume_bullet')
-              }
-              className="text-indigo-600 hover:text-indigo-800"
-            >
-              <Edit3 className="w-4 h-4" />
-            </button>
-          </div>
-        {editField === 'resume_bullet' ? (
-            <textarea
-              value={structuredData.resume_bullet}
-              onChange={(e) => handleFieldEdit('resume_bullet', e.target.value)}
-              className="w-full h-16 p-2 border border-gray-200 rounded focus:ring-2 focus:ring-indigo-500 resize-none"
-              onBlur={() => setEditField(null)}
-              autoFocus
-            />
-          ) : (
-            <p className="text-gray-800 italic">
-              • {structuredData.resume_bullet}
-            </p>
-          )}
-        </div>
+              {/* Impact Level */}
+              <div className="bg-gray-50 rounded-xl p-6 hover:bg-gray-100 transition-colors">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center space-x-2">
+                    <Target className="w-5 h-5 text-indigo-600" />
+                    <label className="font-semibold text-gray-800">Impact Level</label>
+                  </div>
+                  <button
+                    onClick={() => setEditField(editField === 'impact_level' ? null : 'impact_level')}
+                    className="p-1.5 text-indigo-600 hover:bg-indigo-100 rounded-lg transition-colors"
+                  >
+                    <Edit3 className="w-4 h-4" />
+                  </button>
+                </div>
+                {editField === 'impact_level' ? (
+                  <select
+                    value={structuredData.impact_level}
+                    onChange={(e) => handleFieldEdit('impact_level', e.target.value)}
+                    className="w-full p-3 border-2 border-indigo-200 rounded-lg input-focus"
+                    onBlur={() => setEditField(null)}
+                    autoFocus
+                  >
+                    <option value="Exploratory">Exploratory</option>
+                    <option value="In Progress">In Progress</option>
+                    <option value="Confirmed">Confirmed</option>
+                    <option value="Strategic">Strategic</option>
+                    <option value="Enterprise Scale">Enterprise Scale</option>
+                  </select>
+                ) : (
+                  <span className={`px-4 py-2 rounded-full text-sm font-semibold ${getImpactColor(structuredData.impact_level)}`}>
+                    {structuredData.impact_level}
+                  </span>
+                )}
+              </div>
 
-        <div className="flex space-x-4 mt-6 justify-center">
-          <button
-            onClick={() => setStage('input')}
-            className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
-          >
-            Back to Edit
-          </button>
-          <button
-            onClick={submitToAPI}
-            disabled={isSubmitting}
-            className="flex items-center space-x-2 bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 disabled:opacity-50 transition-colors"
-          >
-            <CheckCircle className="w-4 h-4" />
-            <span>{isSubmitting ? 'Submitting...' : 'Confirm & Submit'}</span>
-          </button>
+              {/* Visibility */}
+              <div className="bg-gray-50 rounded-xl p-6 hover:bg-gray-100 transition-colors lg:col-span-2">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center space-x-2">
+                    <Eye className="w-5 h-5 text-indigo-600" />
+                    <label className="font-semibold text-gray-800">Visibility</label>
+                  </div>
+                  <button
+                    onClick={() => setEditField(editField === 'visibility' ? null : 'visibility')}
+                    className="p-1.5 text-indigo-600 hover:bg-indigo-100 rounded-lg transition-colors"
+                  >
+                    <Edit3 className="w-4 h-4" />
+                  </button>
+                </div>
+                {editField === 'visibility' ? (
+                  <input
+                    type="text"
+                    value={structuredData.visibility?.join(', ') || ''}
+                    onChange={(e) => handleFieldEdit('visibility', e.target.value)}
+                    className="w-full p-3 border-2 border-indigo-200 rounded-lg input-focus"
+                    placeholder="Comma-separated audiences"
+                    onBlur={() => setEditField(null)}
+                    autoFocus
+                  />
+                ) : (
+                  <div className="flex flex-wrap gap-2">
+                    {structuredData.visibility?.map((audience, index) => (
+                      <span
+                        key={index}
+                        className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium"
+                      >
+                        {audience}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Description */}
+            <div className="bg-gray-50 rounded-xl p-6 hover:bg-gray-100 transition-colors mb-6">
+              <div className="flex items-center justify-between mb-3">
+                <label className="font-semibold text-gray-800 flex items-center space-x-2">
+                  <FileText className="w-5 h-5 text-indigo-600" />
+                  <span>Description</span>
+                </label>
+                <button
+                  onClick={() => setEditField(editField === 'description' ? null : 'description')}
+                  className="p-1.5 text-indigo-600 hover:bg-indigo-100 rounded-lg transition-colors"
+                >
+                  <Edit3 className="w-4 h-4" />
+                </button>
+              </div>
+              {editField === 'description' ? (
+                <textarea
+                  value={structuredData.description}
+                  onChange={(e) => handleFieldEdit('description', e.target.value)}
+                  className="w-full h-24 p-3 border-2 border-indigo-200 rounded-lg input-focus resize-none"
+                  onBlur={() => setEditField(null)}
+                  autoFocus
+                />
+              ) : (
+                <p className="text-gray-800 leading-relaxed">{structuredData.description}</p>
+              )}
+            </div>
+
+            {/* Resume Bullet */}
+            <div className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl p-6 border border-indigo-100 mb-8">
+              <div className="flex items-center justify-between mb-3">
+                <label className="font-semibold text-gray-800 flex items-center space-x-2">
+                  <Zap className="w-5 h-5 text-indigo-600" />
+                  <span>Resume Bullet Point</span>
+                </label>
+                <button
+                  onClick={() => setEditField(editField === 'resume_bullet' ? null : 'resume_bullet')}
+                  className="p-1.5 text-indigo-600 hover:bg-indigo-100 rounded-lg transition-colors"
+                >
+                  <Edit3 className="w-4 h-4" />
+                </button>
+              </div>
+              {editField === 'resume_bullet' ? (
+                <textarea
+                  value={structuredData.resume_bullet}
+                  onChange={(e) => handleFieldEdit('resume_bullet', e.target.value)}
+                  className="w-full h-20 p-3 border-2 border-indigo-200 rounded-lg input-focus resize-none"
+                  onBlur={() => setEditField(null)}
+                  autoFocus
+                />
+              ) : (
+                <div className="bg-white rounded-lg p-4 border-l-4 border-indigo-500">
+                  <p className="text-gray-800 font-medium leading-relaxed">
+                    • {structuredData.resume_bullet}
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex items-center justify-between">
+              <button
+                onClick={() => setStage('input')}
+                className="btn-secondary flex items-center space-x-2"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                <span>Back to Edit</span>
+              </button>
+              <button
+                onClick={submitToAPI}
+                disabled={isSubmitting}
+                className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+              >
+                <CheckCircle className="w-4 h-4" />
+                <span>{isSubmitting ? 'Submitting...' : 'Confirm & Submit'}</span>
+                {!isSubmitting && <Send className="w-4 h-4" />}
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -524,31 +530,51 @@ const ResumeLogger = () => {
 
   if (stage === 'success') {
     return (
-      <div className="max-w-2xl mx-auto p-6 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl shadow-lg">
-        <div className="text-center">
-          <CheckCircle className="w-12 h-12 text-green-600 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">
-            Achievement Logged!
-          </h2>
-
-          <div className="bg-white rounded-lg p-4 mb-6 text-left">
-            <h3 className="font-semibold text-gray-700 mb-2">API Response:</h3>
-            <p className="text-gray-800 bg-gray-50 p-3 rounded text-sm font-mono">
-              {apiResponse}
-            </p>
+      <div className="w-full max-w-3xl mx-auto animate-fade-in">
+        <div className="card-shadow bg-white rounded-2xl overflow-hidden">
+          {/* Success Header */}
+          <div className="bg-gradient-to-r from-green-500 to-emerald-600 px-8 py-12 text-white text-center">
+            <div className="inline-flex p-4 bg-white/20 rounded-full mb-4">
+              <CheckCircle className="w-12 h-12" />
+            </div>
+            <h2 className="text-3xl font-bold mb-2">Achievement Logged Successfully!</h2>
+            <p className="text-white/90">Your accomplishment has been structured and saved to your knowledge base.</p>
           </div>
 
-          <button
-            onClick={resetForm}
-            className="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 transition-colors"
-          >
-            Log Another Achievement
-          </button>
+          {/* Content */}
+          <div className="p-8">
+            <div className="bg-gray-50 rounded-xl p-6 mb-8">
+              <h3 className="font-semibold text-gray-800 mb-3 flex items-center space-x-2">
+                <FileText className="w-5 h-5 text-indigo-600" />
+                <span>API Response</span>
+              </h3>
+              <div className="bg-white rounded-lg p-4 border-l-4 border-green-500">
+                <p className="text-gray-800 font-mono text-sm leading-relaxed">
+                  {apiResponse}
+                </p>
+              </div>
+            </div>
+
+            <div className="text-center">
+              <button
+                onClick={resetForm}
+                className="btn-primary flex items-center space-x-2 mx-auto"
+              >
+                <Sparkles className="w-4 h-4" />
+                <span>Log Another Achievement</span>
+              </button>
+              
+              <p className="text-gray-600 text-sm mt-4">
+                Ready to capture your next accomplishment?
+              </p>
+            </div>
+          </div>
         </div>
       </div>
     );
   }
+
+  return null;
 };
 
 export default ResumeLogger;
-
