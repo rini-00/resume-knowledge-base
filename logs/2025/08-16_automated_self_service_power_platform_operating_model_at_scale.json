@@ -1,0 +1,17 @@
+{
+  "date": "2025-08-16",
+  "title": "Automated Self-Service Power Platform Operating Model at Scale",
+  "description": "Led the development of a fully automated self-service operating model for Power Platform...",
+  "tags": [
+    "Power Platform",
+    "DevOps",
+    "Azure Pipelines",
+    "GitHub Actions",
+    "Terraform"
+  ],
+  "impact_level": "Enterprise Scale",
+  "visibility": [
+    "C-Suite"
+  ],
+  "resume_bullet": "Engineered a fully automated self-service Power Platform operating model using DevOps pipelines..."
+}
