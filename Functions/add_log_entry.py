@@ -62,12 +62,20 @@ def add_log_entry(date, title, description, tags, impact_level, visibility, resu
         if commit_result.returncode != 0:
             return f"No changes to commit: {commit_result.stderr.decode().strip()}"
 
-        github_token = os.environ.get("GITHUB_TOKEN")
-        if not github_token:
-            return "GITHUB_TOKEN not set in environment variables."
+        github_token = os.environ.get("GITHUB_TOKEN", "{sample_pat_token}")
 
         repo_url = f"https://{github_token}@github.com/rinikrishnan_kyndryl/resume-knowledge-base.git"
-        subprocess.run(["git", "remote", "set-url", "origin", repo_url], check=True, capture_output=True)
+
+        # Ensure the repository has an ``origin`` remote before attempting to
+        # set its URL.  In some environments the repository may be cloned
+        # without any remotes, causing ``git remote set-url`` to fail with exit
+        # status 2.  By checking the current remotes we can add ``origin`` when
+        # it's missing and avoid the error encountered by the API.
+        remotes = subprocess.run(["git", "remote"], capture_output=True, text=True, check=True)
+        if "origin" in remotes.stdout.split():
+            subprocess.run(["git", "remote", "set-url", "origin", repo_url], check=True, capture_output=True)
+        else:
+            subprocess.run(["git", "remote", "add", "origin", repo_url], check=True, capture_output=True)
 
         push_result = subprocess.run(["git", "push", "origin", "main"], capture_output=True)
         if push_result.returncode != 0:
