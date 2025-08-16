@@ -56,6 +56,7 @@ def add_log_entry(date, title, description, tags, impact_level, visibility, resu
         subprocess.run(["git", "add", str(path)], check=True, capture_output=True)
         commit_msg = f"Add log entry: {title}"
         subprocess.run(["git", "commit", "-m", commit_msg], check=True, capture_output=True)
+        subprocess.run(["git", "push", "origin", "main"], check=True, capture_output=True)
         return f"Log entry written to {path} and committed to main branch."
     except Exception as exc:  # broad exception to capture subprocess errors too
         return f"Failed to write log entry: {exc}"
