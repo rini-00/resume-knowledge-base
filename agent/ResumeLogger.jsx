@@ -44,7 +44,7 @@ const ResumeLogger = () => {
           Authorization: `Bearer ${process.env.REACT_APP_OPENAI_API_KEY}`,
         },
         body: JSON.stringify({
-          model: 'gpt-4o-mini',
+          model: 'gpt-5-mini',
           messages: [
             {
               role: 'system',
@@ -252,7 +252,7 @@ const ResumeLogger = () => {
               Analyzing your achievement...
             </h2>
             <p className="text-slate-600 mb-8 font-mono text-sm">
-              Using GPT-4 to intelligently structure your accomplishment
+              Using GPT-5 to intelligently structure your accomplishment
             </p>
             <div className="flex justify-center">
               <div className="flex space-x-2">
