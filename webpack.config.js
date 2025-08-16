@@ -5,6 +5,7 @@ module.exports = {
   output: {
     path: path.resolve(__dirname, 'dist'),
     filename: 'bundle.js',
+    clean: true,
   },
   mode: 'development',
   module: {
@@ -28,12 +29,15 @@ module.exports = {
   resolve: {
     extensions: ['.js', '.jsx', '.json'],
   },
-  devtool: 'source-map',
+  devtool: 'eval-source-map',
   devServer: {
     static: {
       directory: path.join(__dirname, 'public'),
     },
     compress: true,
     port: 3000,
+    hot: true,
+    open: true,
+    historyApiFallback: true,
   },
-};
+}
