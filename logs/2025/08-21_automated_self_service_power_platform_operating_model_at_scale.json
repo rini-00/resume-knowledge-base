@@ -1,0 +1,22 @@
+{
+  "date": "2025-08-21",
+  "title": "Automated Self-Service Power Platform Operating Model at Scale",
+  "description": "Led the development of a fully automated self-service operating model for Power Platform at enterprise scale. Delivered DevOps scripts and infrastructure-as-code using Azure Pipelines, GitHub Actions, and Terraform to automate user onboarding, environment provisioning, DLP policy enforcement, and ALM pipeline creation. Designed operational runbooks and administrative workflows to enable governance and reduce support headcount from 36 to 4. Enabled departmental teams to securely request environments through a self-service form with integrated governance approvals, scaling to support 90,000 users across the organization.",
+  "tags": [
+    "Power Platform",
+    "DevOps",
+    "Azure Pipelines",
+    "GitHub Actions",
+    "Terraform",
+    "Automation",
+    "ALM",
+    "Governance",
+    "Self-Service",
+    "Enterprise IT"
+  ],
+  "impact_level": "Enterprise Scale",
+  "visibility": [
+    "C-Suite"
+  ],
+  "resume_bullet": "Engineered a fully automated self-service Power Platform operating model using DevOps pipelines and IAC, reducing admin headcount by 89% and scaling governance-compliant provisioning for 90K users."
+}
