@@ -3,7 +3,10 @@
 # Test Error Handling Script
 # Comprehensive testing of error scenarios across the application
 
-set -e  # Exit on any error
+# This script intentionally exercises failure scenarios, so we avoid using
+# "set -e" which would terminate the script on the first non-zero exit code.
+# Individual checks report their own pass/fail status through the helper
+# functions below.
 
 # Colors for output
 RED='\033[0;31m'
@@ -11,6 +14,9 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
+
+# Common line divider used across sections
+LINE_BREAK=$(printf '=%.0s' {1..60})
 
 # Counters
 TOTAL_TESTS=0
@@ -314,7 +320,7 @@ test_frontend_errors() {
 
 # Function to print final summary
 print_summary() {
-    echo -e "\n${'='*60}"
+    echo -e "\n$LINE_BREAK"
     echo -e "${BLUE}ERROR HANDLING TEST SUMMARY${NC}"
     divider
     
