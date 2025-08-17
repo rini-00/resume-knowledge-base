@@ -2,3 +2,15 @@
 __pycache__
 .env
 node_modules
+# Node build outputs
+dist/
+*.map
+*.LICENSE.txt
+
+# Python build artifacts
+*.egg-info/
+build/
+dist-py/
+
+# OS cruft
+.DS_Store
