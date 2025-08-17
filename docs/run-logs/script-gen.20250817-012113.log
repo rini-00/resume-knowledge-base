@@ -1,0 +1,59 @@
+python /Users/rinikrishnan/resume-knowledge-base/Tests/unit/test_api_endpoint.py
+Traceback (most recent call last):
+  File "/Users/rinikrishnan/resume-knowledge-base/Tests/unit/test_api_endpoint.py", line 7, in <module>
+    import requests
+ModuleNotFoundError: No module named 'requests'
+MISSING: test_api_endpoint.py
+python /Users/rinikrishnan/resume-knowledge-base/Tests/unit/test_git_operations.py
+Starting Git operations tests...
+==================================================
+🔧 Testing Git configuration...
+✅ Git configured: Rini Krishnan <rkrishn19@gmail.com>
+
+🔑 Testing GitHub token...
+❌ GITHUB_TOKEN environment variable not set
+
+📁 Testing file creation in logs directory...
+✅ File created successfully: logs/2025/test-git-operations.json
+
+📝 Testing Git operations...
+❌ Git commit failed: 
+
+🧹 Cleaning up test files...
+✅ Test files cleaned up
+==================================================
+❌ Some Git operations tests failed
+MISSING: test_git_operations.py
+python /Users/rinikrishnan/resume-knowledge-base/Tests/unit/test_error_scenarios.py
+Traceback (most recent call last):
+  File "/Users/rinikrishnan/resume-knowledge-base/Tests/unit/test_error_scenarios.py", line 7, in <module>
+    import requests
+ModuleNotFoundError: No module named 'requests'
+MISSING: test_error_scenarios.py
+MISSING: test_data_processing.py
+MISSING: test_stage_transitions.py
+MISSING: test_user_interactions.py
+MISSING: test_responsive_design.py
+python /Users/rinikrishnan/resume-knowledge-base/Tests/integration/validate_backend.py
+Traceback (most recent call last):
+  File "/Users/rinikrishnan/resume-knowledge-base/Tests/integration/validate_backend.py", line 7, in <module>
+    import requests
+ModuleNotFoundError: No module named 'requests'
+MISSING: validate_backend.py
+MISSING: check_design_compliance.js
+bash  /Users/rinikrishnan/resume-knowledge-base/Tests/scripts/test_error_handling.sh
+[0;34m🚨 Starting Error Handling Tests[0m
+============================================================
+
+[0;34m🔌 Testing API Error Scenarios[0m
+============================================================
+Testing connection to non-existent server...
+[0;32m✅ Connection error handled correctly[0m
+MISSING: test_error_handling.sh
+MISSING: validate_frontend.js
+OK: requirements-test.txt
+OK: .eslintrc.js
+OK: .prettierrc
+OK: .flake8
+OK: .mypy.ini
+OK: pyproject.toml

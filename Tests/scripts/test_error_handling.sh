@@ -35,10 +35,16 @@ print_status() {
     ((TOTAL_TESTS++))
 }
 
+# Function to create a divider of equal signs
+divider() {
+    printf '=%.0s' {1..60}  # Repeats the '=' character 60 times
+    echo  # Adds a newline at the end
+}
+
 # Function to test API error scenarios
 test_api_errors() {
     echo -e "\n${BLUE}🔌 Testing API Error Scenarios${NC}"
-    echo "================================================"
+    divider
     
     # Test 1: Connection to non-existent server
     echo "Testing connection to non-existent server..."
@@ -88,7 +94,7 @@ test_api_errors() {
 # Function to test environment variable errors
 test_environment_errors() {
     echo -e "\n${BLUE}🔑 Testing Environment Variable Errors${NC}"
-    echo "================================================"
+    divider
     
     # Test 1: Missing GITHUB_TOKEN
     echo "Testing missing GITHUB_TOKEN..."
@@ -132,7 +138,7 @@ except:
 # Function to test file system errors
 test_filesystem_errors() {
     echo -e "\n${BLUE}📁 Testing File System Errors${NC}"
-    echo "================================================"
+    divider
     
     # Test 1: Permission denied scenarios
     echo "Testing file permission scenarios..."
@@ -174,7 +180,7 @@ test_filesystem_errors() {
 # Function to test Git operation errors
 test_git_errors() {
     echo -e "\n${BLUE}📝 Testing Git Operation Errors${NC}"
-    echo "================================================"
+    divider
     
     # Test 1: Git configuration
     echo "Testing Git configuration..."
@@ -227,7 +233,7 @@ test_git_errors() {
 # Function to test network errors
 test_network_errors() {
     echo -e "\n${BLUE}🌐 Testing Network Errors${NC}"
-    echo "================================================"
+    divider
     
     # Test 1: DNS resolution failure
     echo "Testing DNS resolution failure..."
@@ -269,7 +275,7 @@ test_network_errors() {
 # Function to test frontend error scenarios
 test_frontend_errors() {
     echo -e "\n${BLUE}🖥️  Testing Frontend Error Scenarios${NC}"
-    echo "================================================"
+    divider
     
     # Test 1: Check for error handling in React component
     echo "Testing React component error handling..."
@@ -310,7 +316,7 @@ test_frontend_errors() {
 print_summary() {
     echo -e "\n${'='*60}"
     echo -e "${BLUE}ERROR HANDLING TEST SUMMARY${NC}"
-    echo ${'='*60}
+    divider
     
     echo "Total Tests: $TOTAL_TESTS"
     echo -e "${GREEN}Passed: $PASSED_TESTS${NC}"
@@ -330,7 +336,7 @@ print_summary() {
 # Main execution
 main() {
     echo -e "${BLUE}🚨 Starting Error Handling Tests${NC}"
-    echo ${'='*60}
+    divider
     
     # Run all test categories
     test_api_errors

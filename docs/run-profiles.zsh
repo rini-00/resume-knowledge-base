@@ -1,107 +1,121 @@
+# zsh -x /Users/rinikrishnan/resume-knowledge-base/docs/run-profiles.zsh
 # zsh /Users/rinikrishnan/resume-knowledge-base/docs/run-profiles.zsh
 
-# ----- Runs two profiles in order and summarizes errors: ----- 
-#   1) zsh-script-gen
-#   2) zsh-validation-run
-# Logs go to docs/run-logs/*.log
-# Success message (exact text) printed only when no errors are detected in logs and both profiles exit 0.
 
-set -uo pipefail
+# ----- Clears old files in the run-logs folder to start fresh -----
+echo "Clearing old files in the run-logs directory..."
+rm -f /Users/rinikrishnan/resume-knowledge-base/docs/run-logs/*
 
-# Load user shell so profiles are available if defined there
-[[ -f "${HOME}/.zshrc" ]] && source "${HOME}/.zshrc"
+# ----- Continue with the rest of the script -----
+set -euo pipefail
 
-# Locate repo root and move there
-REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
-cd "${REPO_ROOT}" || { echo "ERROR: cannot cd to repo root"; exit 2; }
+# Get the repo root directory
+REPO_ROOT=$(git rev-parse --show-toplevel)
+cd $REPO_ROOT
 
-# Verify profiles exist
-if ! typeset -f zsh-script-gen >/dev/null; then
-  echo "ERROR: zsh-script-gen profile not found in current shell."
+# Define profiles and logs
+PROFILES_MD="$REPO_ROOT/docs/zsh-profiles.md"
+[[ ! -f $PROFILES_MD ]] && { echo "ERROR: $PROFILES_MD not found. Create it and paste the two profiles."; exit 127; }
+
+# Create temporary profile file
+TMP_PROFILES=$(mktemp /tmp/zsh-profiles.XXXXXX)
+
+# Extract profiles from the markdown
+awk $'\n  BEGIN{cap=0}\n  /^```[[:space:]]*(zsh|bash)[[:space:]]*$/ {cap=1; next}\n  /^```[[:space:]]*$/ {cap=0; next}\n  cap==1 {print}\n' $PROFILES_MD > $TMP_PROFILES
+
+# Check if profile file is empty
+if [[ ! -s $TMP_PROFILES ]]; then
+  echo "ERROR: Profile extraction failed. Exiting."
   exit 127
 fi
-if ! typeset -f zsh-validation-run >/dev/null; then
-  echo "ERROR: zsh-validation-run profile not found in current shell."
-  exit 127
-fi
 
-# Prepare logs
-LOG_DIR="${REPO_ROOT}/docs/run-logs"
-mkdir -p "${LOG_DIR}"
-SCRIPT_GEN_LOG="${LOG_DIR}/script-gen.log"
-VALIDATION_LOG="${LOG_DIR}/validation-run.log"
-: > "${SCRIPT_GEN_LOG}"
-: > "${VALIDATION_LOG}"
+# Load the extracted profiles
+source $TMP_PROFILES
 
-# Run profiles in order, capturing exit codes
-# 1) zsh-script-gen
-{
-  echo "=== zsh-script-gen START $(date -u '+%Y-%m-%dT%H:%M:%SZ') ==="
-  zsh-script-gen
-  echo "=== zsh-script-gen END $(date -u '+%Y-%m-%dT%H:%M:%SZ') ==="
-} >> "${SCRIPT_GEN_LOG}" 2>&1
-EXIT_SCRIPT_GEN=$?
+# Clean up the temporary profiles file
+rm -f $TMP_PROFILES
 
-# 2) zsh-validation-run
-{
-  echo "=== zsh-validation-run START $(date -u '+%Y-%m-%dT%H:%M:%SZ') ==="
-  zsh-validation-run
-  echo "=== zsh-validation-run END $(date -u '+%Y-%m-%dT%H:%M:%SZ') ==="
-} >> "${VALIDATION_LOG}" 2>&1
-EXIT_VALIDATION=$?
+# Logging directories
+LOG_DIR="$REPO_ROOT/docs/run-logs"
+mkdir -p $LOG_DIR
+TS=$(date +%Y%m%d-%H%M%S)
+GEN_LOG="$LOG_DIR/script-gen.$TS.log"
+VAL_LOG="$LOG_DIR/validation-run.$TS.log"
+SUMMARY_FILE="$LOG_DIR/failed-tests-summary.$TS.txt"
 
-# Scan logs for error signals (keep this conservative)
-pattern='(^|[^A-Za-z])(error|failed|fail|exception|traceback|npm ERR!|missing|not found|no such file)([^A-Za-z]|$)'
+# Confirm that the summary file variable is set correctly
+echo "SUMMARY_FILE is set to: $SUMMARY_FILE"
 
-has_errors() {
-  local file="$1"
-  grep -E -i -n "${pattern}" "${file}" >/dev/null 2>&1
+# Run the profile script generation...
+echo 'Running profile script generation...'
+zsh-script-gen > $GEN_LOG 2>&1
+
+# Extract errors from the script generation log
+extract_errs() {
+  local f=$1
+  LC_ALL=C grep -Ein '(^|[^A-Za-z])(error|failed|failure|traceback|exception|missing|not found|no such file|command not found)([^A-Za-z]|$)' $f || true
 }
 
-# Build cumulative table
-typeset -a ROWS
-ERR_COUNT=0
+GEN_ERRS=$(extract_errs $GEN_LOG)
 
-# Row builder: PROFILE | STATUS | EXIT | LOG
-add_row() {
-  local profile="$1" status="$2" code="$3" log="$4"
-  ROWS+=("${profile}\t${status}\t${code}\t${log}")
-  [[ "${status}" != "OK" ]] && (( ERR_COUNT+=1 ))
-}
+# Run the validation script
+echo 'Running validation...'
+zsh-validation-run > $VAL_LOG 2>&1
 
-# Evaluate profile 1
-if [[ "${EXIT_SCRIPT_GEN}" -ne 0 ]]; then
-  add_row "zsh-script-gen" "FAIL" "${EXIT_SCRIPT_GEN}" "${SCRIPT_GEN_LOG}"
-elif has_errors "${SCRIPT_GEN_LOG}"; then
-  add_row "zsh-script-gen" "WARN" "0" "${SCRIPT_GEN_LOG}"
-else
-  add_row "zsh-script-gen" "OK" "0" "${SCRIPT_GEN_LOG}"
-fi
+# Extract errors from the validation log
+VAL_ERRS=$(extract_errs $VAL_LOG)
 
-# Evaluate profile 2
-if [[ "${EXIT_VALIDATION}" -ne 0 ]]; then
-  add_row "zsh-validation-run" "FAIL" "${EXIT_VALIDATION}" "${VALIDATION_LOG}"
-elif has_errors "${VALIDATION_LOG}"; then
-  add_row "zsh-validation-run" "WARN" "0" "${VALIDATION_LOG}"
-else
-  add_row "zsh-validation-run" "OK" "0" "${VALIDATION_LOG}"
-fi
-
-# Print summary
-echo
-echo "PROFILE             STATUS  EXIT  LOG"
-for r in "${ROWS[@]}"; do
-  # Expand tabs to fixed spacing for readability
-  echo "${r}" | sed $'s/\t/    /g'
+# Output errors, if any
+echo "Errors found:"
+echo "PROFILE      | DETAIL"
+echo "------------+------------------------------------------------------------"
+for err in $GEN_ERRS; do
+  printf '%-12s | %s\n' script-gen "$err"
 done
 
-# Final outcome
-if [[ "${ERR_COUNT}" -eq 0 ]]; then
-  echo
-  echo "All unit tests and validations have completed successfully. We are ready for UAT and/or deployment."
-  exit 0
+for err in $VAL_ERRS; do
+  printf '%-12s | %s\n' validation "$err"
+done
+
+# Create and write errors to the summary file
+echo "Writing to the summary file..."
+echo "Failed Tests Summary - Generated on $(date)" > $SUMMARY_FILE
+echo "---------------------------------------------------" >> $SUMMARY_FILE
+echo "" >> $SUMMARY_FILE
+
+# Check for script generation errors
+if [[ -n "$GEN_ERRS" ]]; then
+  echo "#### Script Generation Errors:" >> $SUMMARY_FILE
+  echo "" >> $SUMMARY_FILE
+  for err in $GEN_ERRS; do
+    echo "- $err" >> $SUMMARY_FILE
+  done
 else
-  echo
-  echo "Detected ${ERR_COUNT} issue(s). Review logs above."
-  exit 1
+  echo "#### No Script Generation Errors" >> $SUMMARY_FILE
+  echo "  - No errors detected during script generation." >> $SUMMARY_FILE
 fi
+
+echo "" >> $SUMMARY_FILE
+
+# Check for validation errors
+if [[ -n "$VAL_ERRS" ]]; then
+  echo "#### Validation Errors:" >> $SUMMARY_FILE
+  echo "" >> $SUMMARY_FILE
+  for err in $VAL_ERRS; do
+    echo "- $err" >> $SUMMARY_FILE
+  done
+else
+  echo "#### No Validation Errors" >> $SUMMARY_FILE
+  echo "  - No errors detected during validation." >> $SUMMARY_FILE
+fi
+
+# Debug: Check if the summary file was created
+echo "Summary file written to: $SUMMARY_FILE"
+ls -l $SUMMARY_FILE
+
+# Final cleanup
+echo "Logs:"
+echo "  $GEN_LOG"
+echo "  $VAL_LOG"
+
+exit 1

@@ -1,0 +1,3 @@
+/Users/rinikrishnan/resume-knowledge-base/tools/linting/lint-backend
+[0;34m🧹 Starting Backend Linting[0m
+/Users/rinikrishnan/resume-knowledge-base/tools/linting/lint-backend: line 350: ${'='*60}: bad substitution
