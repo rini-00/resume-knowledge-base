@@ -1,0 +1,31 @@
+[zsh-validation-run] /Users/rinikrishnan/resume-knowledge-base/tools/linting/lint-backend
+[0;34m🧹 Starting Backend Linting[0m
+/Users/rinikrishnan/resume-knowledge-base/tools/linting/lint-backend: line 350: ${'='*60}: bad substitution
+[zsh-validation-run] /Users/rinikrishnan/resume-knowledge-base/tools/linting/lint-frontend
+[0;34m🧹 Starting Frontend Linting[0m
+/Users/rinikrishnan/resume-knowledge-base/tools/linting/lint-frontend: line 342: ${'='*60}: bad substitution
+[zsh-validation-run] /Users/rinikrishnan/resume-knowledge-base/tools/linting/lint-design
+/Users/rinikrishnan/resume-knowledge-base/tools/linting/lint-design: line 74: syntax error near unexpected token `('
+[zsh-validation-run] test-backend
+run_executable_or_script_in_repo:15: command not found: test-backend
+[zsh-validation-run] test-frontend
+run_executable_or_script_in_repo:15: command not found: test-frontend
+[zsh-validation-run] npm run validate:frontend
+npm error Missing script: "validate:frontend"
+npm error
+npm error To see a list of scripts, run:
+npm error   npm run
+npm error A complete log of this run can be found in: /Users/rinikrishnan/.npm/_logs/2025-08-17T04_07_27_418Z-debug-0.log
+[zsh-validation-run] python /Users/rinikrishnan/resume-knowledge-base/Tests/integration/validate_backend.py
+run_python_with_file_arg:11: command not found: python
+[zsh-validation-run] npm run check:design
+npm error Missing script: "check:design"
+npm error
+npm error To see a list of scripts, run:
+npm error   npm run
+npm error A complete log of this run can be found in: /Users/rinikrishnan/.npm/_logs/2025-08-17T04_07_28_494Z-debug-0.log
+[zsh-validation-run] bash /Users/rinikrishnan/resume-knowledge-base/Tests/scripts/test_error_handling.sh
+[0;34m🚨 Starting Error Handling Tests[0m
+/Users/rinikrishnan/resume-knowledge-base/Tests/scripts/test_error_handling.sh: line 333: ${'='*60}: bad substitution
+[zsh-validation-run] OK (exists): requirements-dev.txt
+[zsh-validation-run] OK (exists): .eslintignore

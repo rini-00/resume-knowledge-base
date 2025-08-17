@@ -1,0 +1,23 @@
+[zsh-script-gen] python /Users/rinikrishnan/resume-knowledge-base/Tests/unit/test_api_endpoint.py
+run_python_file:9: command not found: python
+[zsh-script-gen] python /Users/rinikrishnan/resume-knowledge-base/Tests/unit/test_git_operations.py
+run_python_file:9: command not found: python
+[zsh-script-gen] python /Users/rinikrishnan/resume-knowledge-base/Tests/unit/test_error_scenarios.py
+run_python_file:9: command not found: python
+[zsh-script-gen] MISSING: test_data_processing.py
+[zsh-script-gen] MISSING: test_stage_transitions.py
+[zsh-script-gen] MISSING: test_user_interactions.py
+[zsh-script-gen] MISSING: test_responsive_design.py
+[zsh-script-gen] python /Users/rinikrishnan/resume-knowledge-base/Tests/integration/validate_backend.py
+run_python_file:9: command not found: python
+[zsh-script-gen] MISSING: check_design_compliance.js
+[zsh-script-gen] bash /Users/rinikrishnan/resume-knowledge-base/Tests/scripts/test_error_handling.sh
+[0;34m🚨 Starting Error Handling Tests[0m
+/Users/rinikrishnan/resume-knowledge-base/Tests/scripts/test_error_handling.sh: line 333: ${'='*60}: bad substitution
+[zsh-script-gen] MISSING: validate_frontend.js
+[zsh-script-gen] OK (exists): requirements-test.txt
+[zsh-script-gen] OK (exists): .eslintrc.js
+[zsh-script-gen] OK (exists): .prettierrc
+[zsh-script-gen] OK (exists): .flake8
+[zsh-script-gen] OK (exists): .mypy.ini
+[zsh-script-gen] OK (exists): pyproject.toml
