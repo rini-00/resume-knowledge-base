@@ -6,7 +6,7 @@ _Updates the docs (including this one) to make sure it is fully up to date befor
 
 **When to run:** Every single time.
 
-1. Run the prompt in `deployment-checklist-update` in `claude-prompts/docs-gen` within a new chat in the Claude project.
+1. Run the prompt in [`deployment-checklist-update`](../claude-prompts/docs-gen/deployment-checklist-update.md) in `claude-prompts/docs-gen` within a new chat in the Claude project.
 
 ---
 
