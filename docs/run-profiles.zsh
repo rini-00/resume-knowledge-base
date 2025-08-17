@@ -1,17 +1,18 @@
-# zsh -x /Users/rinikrishnan/resume-knowledge-base/docs/run-profiles.zsh
-# zsh /Users/rinikrishnan/resume-knowledge-base/docs/run-profiles.zsh
+# zsh -x /path/to/repo/docs/run-profiles.zsh
+# zsh /path/to/repo/docs/run-profiles.zsh
 
 
 # ----- Clears old files in the run-logs folder to start fresh -----
 echo "Clearing old files in the run-logs directory..."
-rm -f /Users/rinikrishnan/resume-knowledge-base/docs/run-logs/*
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+REPO_ROOT="$(git -C "$SCRIPT_DIR" rev-parse --show-toplevel)"
+rm -f "$REPO_ROOT/docs/run-logs"/* 2>/dev/null || true
 
 # ----- Continue with the rest of the script -----
 set -euo pipefail
 
 # Get the repo root directory
-REPO_ROOT=$(git rev-parse --show-toplevel)
-cd $REPO_ROOT
+cd "$REPO_ROOT"
 
 # Define profiles and logs
 PROFILES_MD="$REPO_ROOT/docs/zsh-profiles.md"
