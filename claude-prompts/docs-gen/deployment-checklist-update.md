@@ -2,13 +2,15 @@
 
 ## **STEP 0.**
 
-Review every file in `claude-prompts` EXCEPT THIS ONE (`deployment-checklist-update.md`), and update each file that requires an update based on the scope of any code changes including new or updated files and functionality impacting any of these areas.
+Review every file in `claude-prompts` EXCEPT THIS ONE (`deployment-checklist-update.md`), and update each file that requires an update based on the scope of any code changes including new or updated files and functionality impacting any of these areas. Ensure every new file generated has the exact same name as the original (if existing).
 
 ## **1. Update deployment-checklist.md**
 
 ### **Task: Create a Simple, Succinct, Straight-to-the-Point Ordered Set of Files to Update or Create**
 
 The goal is to update the existing `deployment-checklist.md` file with a succinct, ordered set of files that need to be created or updated pre-deployment. The file should be categorized into the two below sections. The `script-gen` section (1.1) only needs to be run when the rules in the `when to create` section are met. On the other hand, the `validation-run` section should be run every time, independent of whether `script-gen` (1.1) is skipped.
+
+Ensure every new file generated has the exact same name as the original (if existing).
 
 1.1. **script-gen**:
 
@@ -17,16 +19,20 @@ The goal is to update the existing `deployment-checklist.md` file with a succinc
 - Provide the following for this section, keeping verbosity minimal: basic description, when to run, and an ordered list of files to be created.
 - **Outputs**:
   - A short bulleted list of files that will be created or updated in the entirety of this repository as part of this section (e.g., test scripts, utility scripts, documentation). These should include each and every file name explicitly listed within any of the files that sit in the `claude-prompts/tests-utils-create-update` folder.
+  - Generate each of these files as part of this task, ensuring they are complete and ready for use. Use context from the rest of the codebase to ensure consistency, correctness and completeness.
 - **Zsh Profile Command**:
   - A reference to the updated Zsh-profile command, to which these files will eventually be added, which will run all test/ util files for this section in one go.
 
-    1.2. **validation-run**:
+---
+
+1.2. **validation-run**:
 
 - **Description**: Pre-deployment prompt-based checks that must be run every time the codebase is updated (not scoped to just new functionality). This is executed holistically on all files in the repository, included within project files.
 - **When to run**: Run every time the codebase is updated.
 - Provide the following for this section, keeping verbosity minimal: basic description, when to run, and an ordered list of files to be ran.
 - **Outputs**:
   - A short bulleted list of files that must be ran in the entirety of this repository as part of this section (e.g., test scripts, utility scripts, documentation). These should include each and every file name explicitly listed within any of the files that sit in the following folders that sit in the parent `claude-prompts` folder: `code-compliance` and `pre-deployment-linting`.
+  - Generate each of these files as part of this task, ensuring they are complete and ready for use. Use context from the rest of the codebase to ensure consistency, correctness and completeness.
 - **Zsh Profile Command**:
   - A reference to the updated Zsh-profile command, to which these files will eventually be added, which will run all test/ util files for this section in one go.
 
@@ -40,16 +46,18 @@ For context, a Zsh profile is a shell function defined within a Zsh configuratio
 
 For detailed guidance on creating and formatting Zsh profiles, you can refer to the official Zsh manual: [Zsh Functions]('https://zsh.sourceforge.io/Doc/Release/Functions.html').
 
+Ensure every new file generated has the exact same name as the original (if existing).
+
 The goal is to update both of the below sections in the existing `zsh-profiles.md` file. Each section is a single zsh profile in a code block with a brief description of each:
 
 2.1. **Update the Existing `zsh-script-gen` Zsh Profile**:
 
-- The first step is to **update the existing `szsh-script-gen` Zsh profile** to include all the Zsh commands listed under the **`script-gen`** section in **`docs/deployment-checklist.md`**.
+- The first step is to **update the existing `zsh-script-gen` Zsh profile** to include running all the files listed under the **`script-gen`** section in **`docs/deployment-checklist.md`**.
 - This profile will need to run all the files listed in the `script-gen` section of the `docs/deployment-checklist.md` file, in sequential order, to generate scripts for tests, utilities, and other tasks related to the new functionality being added.
 
   2.2. **Update the Existing `zsh-validation-run` Zsh Profile**:
 
-- The second step is to **update the existing `zsh-validation-run` Zsh profile** to include all the Zsh commands listed under the **`validation-run`** section in **`docs/deployment-checklist.md`**.
+- The second step is to **update the existing `zsh-validation-run` Zsh profile** to include rrunning all the files listed under the **`validation-run`** section in **`docs/deployment-checklist.md`**.
 - This profile will need to run all the files listed in the `validation-run` section of the `docs/deployment-checklist.md` file, in sequential order,for pre-deployment validation of the entire codebase, running checks on all relevant files.
 
 ---

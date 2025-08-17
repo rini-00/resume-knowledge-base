@@ -1,7 +1,8 @@
 # zsh -x /Users/rinikrishnan/resume-knowledge-base/scripts/sync-imports.zsh
 
 # ------Overwrite matching Markdown files in the current Git repo with contents from ~/Downloads/Imports. 
-# Matches are case-insensitive and treat underscores = dashes.-------
+# Matches are case-insensitive and treat underscores = dashes.
+# Deletes import files after successful replacement.-------
 
 set -uo pipefail
 
@@ -40,7 +41,7 @@ fi
 
 echo "Repository: ${REPO_ROOT}"
 echo "Imports dir: ${IMPORT_DIR}"
-echo "This will OVERWRITE matching files in the repo (backups will be created)."
+echo "This will OVERWRITE matching files in the repo and DELETE successfully imported files."
 read -q "REPLY?Proceed? [y/N] "; echo
 if [[ ! "${REPLY}" =~ ^[Yy]$ ]]; then
   echo "Aborted."
@@ -51,6 +52,8 @@ fi
 count_total=0
 count_updated=0
 count_skipped=0
+count_deleted=0
+count_no_matches=0
 
 for imp in "${import_files[@]}"; do
   base="${imp:t}"                  # basename, e.g. backend_validation.md
@@ -65,8 +68,11 @@ for imp in "${import_files[@]}"; do
 
   if (( ${#matches[@]} == 0 )); then
     echo "No matches found in repo for: ${base}"
+    (( count_no_matches++ ))
     continue
   fi
+
+  file_was_updated=false
 
   for m in "${matches[@]}"; do
     (( count_total++ ))
@@ -78,29 +84,65 @@ for imp in "${import_files[@]}"; do
       continue
     fi
 
-    # If identical, skip
+    # If identical, skip but still mark as processed
     if cmp -s "${imp}" "${m}"; then
       echo "Unchanged (already identical): ${m}"
       (( count_skipped++ ))
+      file_was_updated=true
       continue
     fi
 
-    cat "${imp}" > "${m}"
-    echo "Updated: ${m}  ←  ${imp}"
-    (( count_updated++ ))
+    # Create backup with timestamp
+    backup_suffix=".bak.$(date +%Y%m%d%H%M%S)"
+    if cp "${m}" "${m}${backup_suffix}"; then
+      echo "Backup created: ${m}${backup_suffix}"
+    else
+      echo "Warning: Failed to create backup for ${m}" >&2
+    fi
 
-
+    # Attempt to update the file
     if cat "${imp}" > "${m}"; then
       echo "Updated: ${m}  ←  ${imp}"
       (( count_updated++ ))
+      file_was_updated=true
     else
       echo "Failed to write: ${m}" >&2
     fi
   done
+
+  # Delete the import file if it was successfully processed (updated or already identical)
+  if [[ "${file_was_updated}" == "true" ]]; then
+    if rm "${imp}"; then
+      echo "Deleted import file: ${imp}"
+      (( count_deleted++ ))
+    else
+      echo "Warning: Failed to delete import file: ${imp}" >&2
+    fi
+  fi
 done
 
 echo "Done."
-echo "Matches considered: ${count_total}"
+echo "Import files processed: ${#import_files[@]}"
+echo "Repo matches considered: ${count_total}"
 echo "Updated: ${count_updated}"
 echo "Skipped (identical/self): ${count_skipped}"
+echo "Import files deleted: ${count_deleted}"
+echo "Import files with no matches (remaining): ${count_no_matches}"
 echo "Backups placed next to files with suffix: .bak.YYYYMMDDHHMMSS"
+
+# Show remaining files in import directory
+remaining_files=()
+while IFS= read -r -d '' f; do
+  remaining_files+=("$f")
+done < <(find "${IMPORT_DIR}" -type f \( -iname '*.md' -o -iname '*.markdown' -o -iname '*.mdx' \) -print0)
+
+if (( ${#remaining_files[@]} > 0 )); then
+  echo ""
+  echo "Remaining files in ${IMPORT_DIR}:"
+  for f in "${remaining_files[@]}"; do
+    echo "  ${f:t}"
+  done
+else
+  echo ""
+  echo "All import files processed successfully. ${IMPORT_DIR} is now empty of Markdown files."
+fi

@@ -1,0 +1,435 @@
+#!/bin/bash
+
+# Design System Linting Script
+# Comprehensive design system compliance checking for the Resume Logger
+
+set -e  # Exit on any error
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+# Counters
+TOTAL_CHECKS=0
+PASSED_CHECKS=0
+FAILED_CHECKS=0
+VIOLATIONS=()
+
+# Approved design system values
+APPROVED_COLORS=(
+    "#f1f5f9" "#e2e8f0" "#cbd5e1" "#94a3b8" "#64748b" 
+    "#475569" "#334155" "#1e293b" "#0f172a"
+    "#6366f1" "#4f46e5" "#4338ca"
+    "#ffffff" "#000000"
+    "white" "black" "transparent"
+    "rgb(241,245,249)" "rgb(226,232,240)" "rgb(99,102,241)"
+)
+
+APPROVED_FONTS=(
+    "Aptos" "aptos" "'Aptos'" "\"Aptos\""
+    "Aptos Display" "aptos display" "'Aptos Display'" "\"Aptos Display\""
+    "Aptos Mono" "aptos mono" "'Aptos Mono'" "\"Aptos Mono\""
+    "system-ui" "sans-serif" "monospace"
+)
+
+APPROVED_SPACING=(
+    "4px" "8px" "16px" "24px" "32px" "48px" "64px"
+    "0.25rem" "0.5rem" "1rem" "1.5rem" "2rem" "3rem" "4rem"
+    "0" "auto"
+)
+
+APPROVED_BORDER_RADIUS=(
+    "8px" "12px" "16px" "20px"
+    "0.5rem" "0.75rem" "1rem" "1.25rem"
+    "0" "50%" "100%"
+)
+
+# Function to print colored output
+print_status() {
+    local status=$1
+    local message=$2
+    if [ "$status" = "PASS" ]; then
+        echo -e "${GREEN}
+
+# Function to validate border radius in a file
+validate_border_radius() {
+    local file=$1
+    echo "Checking border radius in $file..."
+    
+    local violations_found=0
+    
+    while IFS= read -r line_num && IFS= read -r line <&3; do
+        # Look for border-radius properties
+        radius_props=$(echo "$line" | grep -oE "(border-radius|borderRadius)[^:]*:[^;]+;" || true)
+        
+        for prop in $radius_props; do
+            # Extract radius values
+            radius_values=$(echo "$prop" | grep -oE '[0-9]+px|[0-9]+(\.[0-9]+)?rem|[0-9]+%' || true)
+            
+            for value in $radius_values; do
+                if ! is_approved "$value" APPROVED_BORDER_RADIUS; then
+                    add_violation "$file" "$line_num" "Invalid border radius '$value' (use 8px, 12px, 16px, or 20px)"
+                    violations_found=1
+                fi
+            done
+        done
+    done < <(nl -ba "$file") 3< <(cat "$file")
+    
+    if [ $violations_found -eq 0 ]; then
+        print_status "PASS" "Border radius validation ($file): Standardized values used"
+    else
+        print_status "FAIL" "Border radius validation ($file): Invalid border radius found"
+    fi
+}
+
+# Function to validate responsive breakpoints
+validate_breakpoints() {
+    local file=$1
+    echo "Checking responsive breakpoints in $file..."
+    
+    local violations_found=0
+    local approved_breakpoints=("320px" "768px" "1024px" "1400px" "20rem" "48rem" "64rem" "87.5rem")
+    
+    while IFS= read -r line_num && IFS= read -r line <&3; do
+        # Look for media queries
+        if echo "$line" | grep -q "@media"; then
+            # Extract breakpoint values
+            breakpoints=$(echo "$line" | grep -oE '[0-9]+px|[0-9]+(\.[0-9]+)?rem' || true)
+            
+            for breakpoint in $breakpoints; do
+                local is_approved_bp=0
+                for approved_bp in "${approved_breakpoints[@]}"; do
+                    if [[ "$breakpoint" == "$approved_bp" ]]; then
+                        is_approved_bp=1
+                        break
+                    fi
+                done
+                
+                if [ $is_approved_bp -eq 0 ]; then
+                    add_violation "$file" "$line_num" "Non-standard breakpoint '$breakpoint' (use 320px, 768px, 1024px, 1400px)"
+                    violations_found=1
+                fi
+            done
+        fi
+    done < <(nl -ba "$file") 3< <(cat "$file")
+    
+    if [ $violations_found -eq 0 ]; then
+        print_status "PASS" "Breakpoint validation ($file): Standard breakpoints used"
+    else
+        print_status "FAIL" "Breakpoint validation ($file): Non-standard breakpoints found"
+    fi
+}
+
+# Function to validate Tailwind configuration
+validate_tailwind_config() {
+    local file="tailwind.config.js"
+    
+    if [ ! -f "$file" ]; then
+        print_status "WARN" "tailwind.config.js not found"
+        return
+    fi
+    
+    echo -e "\n${BLUE}🎨 Validating Tailwind Configuration${NC}"
+    echo "================================================"
+    
+    # Check for custom theme configuration
+    if grep -q "theme.*extend\|theme.*colors\|theme.*fontFamily" "$file"; then
+        print_status "PASS" "Tailwind config: Custom theme configuration found"
+    else
+        print_status "WARN" "Tailwind config: No custom theme configuration found"
+    fi
+    
+    # Check for design system colors
+    if grep -q "#f1f5f9\|#e2e8f0\|#6366f1" "$file"; then
+        print_status "PASS" "Tailwind config: Design system colors configured"
+    else
+        print_status "WARN" "Tailwind config: Design system colors not configured"
+    fi
+    
+    # Check for Aptos font configuration
+    if grep -q -i "aptos" "$file"; then
+        print_status "PASS" "Tailwind config: Aptos font family configured"
+    else
+        print_status "WARN" "Tailwind config: Aptos font family not configured"
+    fi
+}
+
+# Function to scan all frontend files
+scan_frontend_files() {
+    echo -e "\n${BLUE}🔍 Scanning Frontend Files for Design Compliance${NC}"
+    echo "================================================"
+    
+    # Files to check
+    local files_to_check=(
+        "agent/ResumeLogger.jsx"
+        "src/index.css"
+        "src/App.js"
+    )
+    
+    for file in "${files_to_check[@]}"; do
+        if [ -f "$file" ]; then
+            echo -e "\n--- Validating $file ---"
+            validate_colors "$file"
+            validate_fonts "$file"
+            validate_spacing "$file"
+            validate_border_radius "$file"
+            validate_breakpoints "$file"
+        else
+            print_status "WARN" "File not found: $file"
+        fi
+    done
+    
+    # Validate Tailwind config separately
+    validate_tailwind_config
+}
+
+# Function to check for design system imports
+validate_design_imports() {
+    echo -e "\n${BLUE}📦 Validating Design System Imports${NC}"
+    echo "================================================"
+    
+    # Check CSS imports in index.css
+    if [ -f "src/index.css" ]; then
+        if grep -q "@import\|url(" "src/index.css"; then
+            if grep -q -i "aptos" "src/index.css"; then
+                print_status "PASS" "Font imports: Aptos font family imported correctly"
+            else
+                print_status "WARN" "Font imports: Aptos font import not found"
+            fi
+        else
+            print_status "WARN" "Font imports: No font imports found"
+        fi
+    fi
+    
+    # Check component imports
+    if [ -f "agent/ResumeLogger.jsx" ]; then
+        if grep -q "import.*css\|import.*style" "agent/ResumeLogger.jsx"; then
+            print_status "PASS" "Style imports: CSS imports found in component"
+        else
+            print_status "INFO" "Style imports: No CSS imports in component (may use Tailwind)"
+        fi
+    fi
+}
+
+# Function to validate component structure
+validate_component_structure() {
+    echo -e "\n${BLUE}🏗️  Validating Component Structure${NC}"
+    echo "================================================"
+    
+    if [ -f "agent/ResumeLogger.jsx" ]; then
+        # Check for card-based layouts
+        if grep -q "card\|Card\|bg-.*rounded\|border.*rounded" "agent/ResumeLogger.jsx"; then
+            print_status "PASS" "Component structure: Card-based layout patterns found"
+        else
+            print_status "WARN" "Component structure: No card-based layout patterns found"
+        fi
+        
+        # Check for consistent spacing classes
+        if grep -q "space-y\|gap-\|p-\|m-" "agent/ResumeLogger.jsx"; then
+            print_status "PASS" "Component structure: Consistent spacing classes used"
+        else
+            print_status "WARN" "Component structure: No consistent spacing classes found"
+        fi
+        
+        # Check for responsive classes
+        if grep -q "sm:\|md:\|lg:\|xl:" "agent/ResumeLogger.jsx"; then
+            print_status "PASS" "Component structure: Responsive classes found"
+        else
+            print_status "WARN" "Component structure: No responsive classes found"
+        fi
+    fi
+}
+
+# Function to print violations
+print_violations() {
+    if [ ${#VIOLATIONS[@]} -gt 0 ]; then
+        echo -e "\n${RED}📋 DESIGN VIOLATIONS FOUND:${NC}"
+        echo "================================================"
+        for violation in "${VIOLATIONS[@]}"; do
+            echo -e "${RED}❌ $violation${NC}"
+        done
+    fi
+}
+
+# Function to print summary
+print_summary() {
+    echo -e "\n${'='*60}"
+    echo -e "${BLUE}DESIGN SYSTEM LINTING SUMMARY${NC}"
+    echo ${'='*60}
+    
+    echo "Total Checks: $TOTAL_CHECKS"
+    echo -e "${GREEN}Passed: $PASSED_CHECKS${NC}"
+    echo -e "${RED}Failed: $FAILED_CHECKS${NC}"
+    echo -e "${RED}Violations: ${#VIOLATIONS[@]}${NC}"
+    
+    print_violations
+    
+    if [ $FAILED_CHECKS -eq 0 ] && [ ${#VIOLATIONS[@]} -eq 0 ]; then
+        echo -e "\n${GREEN}🎉 All design system checks passed!${NC}"
+        echo -e "${GREEN}✅ Design system compliance validated${NC}"
+        return 0
+    else
+        echo -e "\n${RED}⚠️  Design system violations found${NC}"
+        echo -e "${RED}❌ Fix violations before deployment${NC}"
+        return 1
+    fi
+}
+
+# Main execution
+main() {
+    echo -e "${BLUE}🎨 Starting Design System Compliance Check${NC}"
+    echo ${'='*60}
+    
+    # Run all design validation checks
+    scan_frontend_files
+    validate_design_imports
+    validate_component_structure
+    
+    # Print summary and exit
+    print_summary
+    exit $?
+}
+
+# Run main function
+main "$@"✅ $message${NC}"
+        ((PASSED_CHECKS++))
+    elif [ "$status" = "FAIL" ]; then
+        echo -e "${RED}❌ $message${NC}"
+        ((FAILED_CHECKS++))
+    elif [ "$status" = "INFO" ]; then
+        echo -e "${BLUE}ℹ️  $message${NC}"
+    elif [ "$status" = "WARN" ]; then
+        echo -e "${YELLOW}⚠️  $message${NC}"
+    fi
+    ((TOTAL_CHECKS++))
+}
+
+# Function to add violation
+add_violation() {
+    local file=$1
+    local line=$2
+    local violation=$3
+    VIOLATIONS+=("$file:$line - $violation")
+}
+
+# Function to check if value is in approved list
+is_approved() {
+    local value=$1
+    local -n approved_array=$2
+    
+    for approved in "${approved_array[@]}"; do
+        if [[ "$value" == "$approved" ]]; then
+            return 0
+        fi
+    done
+    return 1
+}
+
+# Function to validate colors in a file
+validate_colors() {
+    local file=$1
+    echo "Checking colors in $file..."
+    
+    local violations_found=0
+    
+    # Look for hex colors
+    while IFS= read -r line_num && IFS= read -r line <&3; do
+        # Find hex colors (#123456, #abc)
+        hex_colors=$(echo "$line" | grep -oE '#[0-9a-fA-F]{3,6}' || true)
+        for color in $hex_colors; do
+            if ! is_approved "$color" APPROVED_COLORS; then
+                add_violation "$file" "$line_num" "Unauthorized color $color (use approved muted palette)"
+                violations_found=1
+            fi
+        done
+        
+        # Find rgb/rgba colors
+        rgb_colors=$(echo "$line" | grep -oE 'rgba?\([^)]+\)' || true)
+        for color in $rgb_colors; do
+            if ! is_approved "$color" APPROVED_COLORS; then
+                add_violation "$file" "$line_num" "Unauthorized color $color (use approved muted palette)"
+                violations_found=1
+            fi
+        done
+        
+        # Find color names
+        color_names=$(echo "$line" | grep -oE '\b(red|blue|green|yellow|purple|orange|pink|brown|gray|grey)\b' || true)
+        for color in $color_names; do
+            if [[ "$color" != "gray" && "$color" != "grey" ]]; then
+                add_violation "$file" "$line_num" "Unauthorized color name '$color' (use approved muted palette)"
+                violations_found=1
+            fi
+        done
+    done < <(nl -ba "$file") 3< <(cat "$file")
+    
+    if [ $violations_found -eq 0 ]; then
+        print_status "PASS" "Color validation ($file): All colors from approved palette"
+    else
+        print_status "FAIL" "Color validation ($file): Unauthorized colors found"
+    fi
+}
+
+# Function to validate fonts in a file
+validate_fonts() {
+    local file=$1
+    echo "Checking fonts in $file..."
+    
+    local violations_found=0
+    
+    while IFS= read -r line_num && IFS= read -r line <&3; do
+        # Look for font-family declarations
+        if echo "$line" | grep -q "font-family\|fontFamily"; then
+            # Extract font family values
+            font_families=$(echo "$line" | grep -oE "(font-family|fontFamily)[[:space:]]*:[[:space:]]*[^;]+[;]?" | sed 's/.*:[[:space:]]*//' | sed 's/[;,].*//')
+            
+            for font in $font_families; do
+                # Clean up the font name
+                clean_font=$(echo "$font" | sed 's/[",'"'"']//g' | xargs)
+                
+                if ! is_approved "$clean_font" APPROVED_FONTS; then
+                    add_violation "$file" "$line_num" "Unauthorized font '$clean_font' (use Aptos family only)"
+                    violations_found=1
+                fi
+            done
+        fi
+    done < <(nl -ba "$file") 3< <(cat "$file")
+    
+    if [ $violations_found -eq 0 ]; then
+        print_status "PASS" "Font validation ($file): Only Aptos fonts used"
+    else
+        print_status "FAIL" "Font validation ($file): Unauthorized fonts found"
+    fi
+}
+
+# Function to validate spacing in a file
+validate_spacing() {
+    local file=$1
+    echo "Checking spacing in $file..."
+    
+    local violations_found=0
+    
+    while IFS= read -r line_num && IFS= read -r line <&3; do
+        # Look for margin, padding, gap properties
+        spacing_props=$(echo "$line" | grep -oE "(margin|padding|gap)[^:]*:[^;]+;" || true)
+        
+        for prop in $spacing_props; do
+            # Extract spacing values
+            spacing_values=$(echo "$prop" | grep -oE '[0-9]+px|[0-9]+(\.[0-9]+)?rem' || true)
+            
+            for value in $spacing_values; do
+                if ! is_approved "$value" APPROVED_SPACING; then
+                    add_violation "$file" "$line_num" "Non-design-system spacing '$value' (use approved scale: 4px, 8px, 16px, 24px, 32px, 48px, 64px)"
+                    violations_found=1
+                fi
+            done
+        done
+    done < <(nl -ba "$file") 3< <(cat "$file")
+    
+    if [ $violations_found -eq 0 ]; then
+        print_status "PASS" "Spacing validation ($file): Design scale followed"
+    else
+        print_status "FAIL" "Spacing validation ($file): Non-design-system spacing found"
+    fi

@@ -6,19 +6,20 @@ _Updates the docs (including this one) to make sure it is fully up to date befor
 
 **When to run:** Every single time.
 
-1. Run the prompt in `deployment-checklist-update` in `claude-prompts/docs-gen` within a new chat in the Claude project.
+1. Run the prompt in [`deployment-checklist-update`](../claude-prompts/docs-gen/deployment-checklist-update.md) in `claude-prompts/docs-gen` within a new chat in the Claude project.
 
 ---
 
 ## STEP 1 (OPTIONAL)
 
-## **script-gen**
+### script-gen
 
-_Prompts to generate actual scripts for new tests and utilities that need to be created for net-new functionality._
+Prompts to generate actual scripts for new tests and utilities that need to be created for net-new functionality.
 
-**When to run:** Run one-time when adding new functionality. This section should be scoped specifically to the new functionality only and any potentially updated functionality.
+When to run: Run one-time when adding new functionality. This section should be scoped specifically to the new functionality only and any potentially updated functionality.
 
-**Files to Create/Update:**
+Files to Create/Update:
+
 - `test_api_endpoint.py` - Tests POST /log-entry with real data
 - `test_git_operations.py` - Tests file creation and Git commits
 - `test_error_scenarios.py` - Tests failure modes
@@ -37,19 +38,20 @@ _Prompts to generate actual scripts for new tests and utilities that need to be 
 - `.mypy.ini` - Type checking configuration
 - `pyproject.toml` - Black formatter configuration
 
-**Zsh Profile:** `zsh-script-gen`
+Zsh Profile: `zsh-script-gen`
 
 ---
 
 ## STEP 2 (MANDATORY)
 
-## **validation-run**
+### validation-run
 
-_Pre-deployment prompt-based checks that must be run every time the codebase is updated (not scoped to just new functionality). This is executed holistically on all files in the repository._
+Pre-deployment prompt-based checks that must be run every time the codebase is updated (not scoped to just new functionality). This is executed holistically on all files in the repository.
 
-**When to run:** Run every time the codebase is updated.
+When to run: Run every time the codebase is updated.
 
-**Files to Run:**
+Files to Run:
+
 - `lint-backend` - Python linting (black, flake8, mypy, bandit, shellcheck)
 - `lint-frontend` - React/JS linting (eslint, prettier)
 - `lint-design` - Design system compliance check
@@ -62,11 +64,11 @@ _Pre-deployment prompt-based checks that must be run every time the codebase is 
 - `requirements-dev.txt` - Linting dependencies
 - `.eslintignore` - Ignore build outputs and node_modules
 
-**Zsh Profile:** `zsh-validation-run`
+Zsh Profile: `zsh-validation-run`
 
 ---
 
 ## STEP 3 (MANDATORY)
 
 1. Ensure you are at the root folder
-2. Run the following: `cd docs; chmod +x run-profiles.zsh; zsh run-profiles.zsh`
+2. Run the following: `cd /docs; chmod +x run-profiles.zsh; zsh run-profiles.zsh`
