@@ -1,6 +1,8 @@
 #!/bin/zsh
 # Fixed run profiles script with repository-relative paths and error handling
 
+chmod +x docs/run-profiles.zsh
+
 set -uo pipefail
 
 # ---- Configuration ----
