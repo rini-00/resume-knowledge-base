@@ -1,8 +1,83 @@
+# Dependencies
 node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build outputs
 build/
 dist/
 *.min.js
 *.min.css
-webpack.config.js
-public/
+
+# Environment files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Python files and directories
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Git
+.git/
+.gitignore
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Logs
+logs/
+*.log
+
+# Test coverage
 coverage/
+htmlcov/
+.nyc_output
+.coverage
+
+# Temporary files
+tmp/
+temp/
+
+# Package files
+*.tgz
+*.tar.gz
+
+# Documentation build
+docs/_build/
+
+# Ignore specific config files that shouldn't be linted
+webpack.config.js
+babel.config.js
+jest.config.js
+postcss.config.js
+
+# Ignore generated or vendor files
+public/bundle.js
+public/bundle.css
+vendor/

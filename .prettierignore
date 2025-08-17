@@ -1,0 +1,49 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+build/
+dist/
+*.min.js
+*.min.css
+public/bundle.js
+public/bundle.css
+
+# Environment and config files
+.env*
+package-lock.json
+yarn.lock
+
+# Generated files
+coverage/
+htmlcov/
+.nyc_output
+
+# Logs and temporary files
+logs/
+*.log
+tmp/
+temp/
+
+# Version control
+.git/
+
+# IDE and editor files
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Python files
+__pycache__/
+*.py[cod]
+venv/
+.venv/
+
+# Documentation
+docs/_build/
+
+# Vendor files
+vendor/

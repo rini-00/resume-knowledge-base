@@ -7,15 +7,33 @@ pytest-asyncio>=0.21.0
 pytest-cov>=4.1.0
 pytest-mock>=3.11.0
 
-# HTTP testing
+# HTTP testing and API clients
 httpx>=0.24.0
 requests>=2.31.0
 
-# Code quality and linting
+# Code quality and linting tools
 black>=23.7.0
 flake8>=6.0.0
 mypy>=1.5.0
 bandit>=1.7.5
 
-# Type stubs
+# Type stubs for external libraries
 types-requests>=2.31.0
+
+# Development and debugging tools
+ipython>=8.0.0
+ipdb>=0.13.0
+
+# Performance testing
+pytest-benchmark>=4.0.0
+
+# Test data generation
+factory-boy>=3.3.0
+faker>=19.0.0
+
+# Additional testing utilities
+coverage>=7.0.0
+tox>=4.0.0
+
+# FastAPI testing dependencies
+fastapi[all]>=0.104.0

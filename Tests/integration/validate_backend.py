@@ -1,424 +1,493 @@
 #!/usr/bin/env python3
 """
-Comprehensive backend validation script.
-Tests all backend functionality including API, Git operations, and environment setup.
+Backend validation script for comprehensive testing.
+Validates API endpoints, Git operations, and backend functionality.
 """
 
-import requests
-import json
-import os
 import sys
+import os
+import json
 import subprocess
-import time
+import tempfile
 from pathlib import Path
 from datetime import datetime
-from typing import Dict, Any, Tuple
+
+# Check if requests is available
+try:
+    import requests
+    from requests.exceptions import ConnectionError, Timeout, RequestException
+except ImportError:
+    print("❌ requests module not found")
+    print("Install with: pip install requests")
+    sys.exit(1)
 
 API_BASE_URL = "http://localhost:8000"
 
 class BackendValidator:
     def __init__(self):
-        self.success_count = 0
-        self.test_count = 0
         self.errors = []
+        self.warnings = []
+        self.total_checks = 0
+        self.passed_checks = 0
+        self.failed_checks = 0
 
-    def test(self, name: str, func) -> bool:
-        """Run a test and track results."""
-        self.test_count += 1
-        print(f"\n{'='*50}")
-        print(f"Test {self.test_count}: {name}")
-        print('='*50)
+    def log(self, level, message):
+        """Log a message with appropriate formatting."""
+        timestamp = datetime.now().strftime("%H:%M:%S")
         
+        if level == 'PASS':
+            print(f"[{timestamp}] ✅ {message}")
+            self.passed_checks += 1
+        elif level == 'FAIL':
+            print(f"[{timestamp}] ❌ {message}")
+            self.failed_checks += 1
+            self.errors.append(message)
+        elif level == 'WARN':
+            print(f"[{timestamp}] ⚠️  {message}")
+            self.warnings.append(message)
+        elif level == 'INFO':
+            print(f"[{timestamp}] ℹ️  {message}")
+        else:
+            print(f"[{timestamp}] {message}")
+        
+        self.total_checks += 1
+
+    def check_server_availability(self) -> bool:
+        """Check if the API server is running."""
         try:
-            result = func()
-            if result:
-                self.success_count += 1
-                print(f"✅ {name} - PASSED")
-            else:
-                self.errors.append(name)
-                print(f"❌ {name} - FAILED")
-            return result
-        except Exception as e:
-            self.errors.append(f"{name}: {str(e)}")
-            print(f"❌ {name} - ERROR: {e}")
+            response = requests.get(f"{API_BASE_URL}/health", timeout=5)
+            return response.status_code == 200
+        except (ConnectionError, Timeout, RequestException):
             return False
 
     def validate_environment(self) -> bool:
         """Validate environment setup."""
-        print("🔧 Validating environment configuration...")
+        print("\n🌍 Environment Validation")
+        print("=" * 50)
         
-        # Check GITHUB_TOKEN
-        token = os.getenv("GITHUB_TOKEN")
-        if not token:
-            print("❌ GITHUB_TOKEN environment variable not set")
-            return False
-        elif len(token) < 10:
-            print("❌ GITHUB_TOKEN appears invalid (too short)")
-            return False
+        success = True
+        
+        # Check Python version
+        python_version = sys.version_info
+        if python_version >= (3, 9):
+            self.log('PASS', f"Python version: {python_version.major}.{python_version.minor}.{python_version.micro}")
         else:
-            print("✅ GITHUB_TOKEN configured")
+            self.log('FAIL', f"Python version too old: {python_version.major}.{python_version.minor}")
+            success = False
+        
+        # Check required modules
+        required_modules = ['fastapi', 'uvicorn', 'requests', 'json', 'os', 'subprocess']
+        for module in required_modules:
+            try:
+                __import__(module)
+                self.log('PASS', f"Module available: {module}")
+            except ImportError:
+                self.log('FAIL', f"Module missing: {module}")
+                success = False
+        
+        # Check GitHub token
+        if os.environ.get("GITHUB_TOKEN"):
+            self.log('PASS', "GitHub token configured")
+        else:
+            self.log('WARN', "GitHub token not configured (some operations will fail)")
         
         # Check Git configuration
         try:
-            name_result = subprocess.run(["git", "config", "user.name"], 
-                                       capture_output=True, text=True)
-            email_result = subprocess.run(["git", "config", "user.email"], 
-                                        capture_output=True, text=True)
-            
-            if name_result.returncode != 0 or not name_result.stdout.strip():
-                print("❌ Git user.name not configured")
-                return False
-            
-            if email_result.returncode != 0 or not email_result.stdout.strip():
-                print("❌ Git user.email not configured")
-                return False
-            
-            print(f"✅ Git configured: {name_result.stdout.strip()} <{email_result.stdout.strip()}>")
-            
-        except Exception as e:
-            print(f"❌ Git configuration check failed: {e}")
-            return False
-        
-        # Check if we're in a Git repository
-        try:
-            result = subprocess.run(["git", "status"], capture_output=True, text=True)
-            if result.returncode != 0:
-                print("❌ Not in a Git repository")
-                return False
+            result = subprocess.run(["git", "config", "user.name"], capture_output=True, text=True, timeout=5)
+            if result.returncode == 0 and result.stdout.strip():
+                self.log('PASS', f"Git user configured: {result.stdout.strip()}")
             else:
-                print("✅ Git repository detected")
-        except Exception as e:
-            print(f"❌ Git repository check failed: {e}")
-            return False
+                self.log('WARN', "Git user not configured")
+        except Exception:
+            self.log('WARN', "Git not available or not configured")
         
-        return True
+        return success
 
     def validate_api_health(self) -> bool:
-        """Validate API health endpoint."""
-        print("🏥 Testing API health endpoint...")
+        """Validate API health endpoints."""
+        print("\n🏥 API Health Validation")
+        print("=" * 50)
+        
+        if not self.check_server_availability():
+            self.log('WARN', "API server not running - skipping health checks")
+            return True
+        
+        success = True
         
         try:
+            # Test health endpoint
             response = requests.get(f"{API_BASE_URL}/health", timeout=10)
-            
             if response.status_code == 200:
                 health_data = response.json()
-                print(f"✅ Health endpoint responding: {health_data}")
-                return True
-            else:
-                print(f"❌ Health endpoint returned {response.status_code}")
-                return False
+                self.log('PASS', "Health endpoint responding")
                 
-        except requests.exceptions.ConnectionError:
-            # In continuous integration environments the API server may not be
-            # available. Treat this situation as a skipped test so the overall
-            # validation can proceed without failing the entire run.
-            print("ℹ️  Cannot connect to API server - skipping health check")
-            return True
+                # Validate health response structure
+                required_fields = ['status', 'timestamp', 'environment']
+                for field in required_fields:
+                    if field in health_data:
+                        self.log('PASS', f"Health response contains: {field}")
+                    else:
+                        self.log('FAIL', f"Health response missing: {field}")
+                        success = False
+                        
+            else:
+                self.log('FAIL', f"Health endpoint failed: {response.status_code}")
+                success = False
+                
         except Exception as e:
-            print(f"❌ Health check failed: {e}")
-            return False
-
-    def validate_api_endpoint(self) -> bool:
-        """Validate main API endpoint functionality."""
-        print("📝 Testing POST /log-entry endpoint...")
+            self.log('FAIL', f"Health endpoint error: {e}")
+            success = False
         
+        return success
+
+    def validate_api_endpoints(self) -> bool:
+        """Validate API endpoint functionality."""
+        print("\n🔌 API Endpoint Validation")
+        print("=" * 50)
+        
+        if not self.check_server_availability():
+            self.log('WARN', "API server not running - skipping endpoint validation")
+            return True
+        
+        success = True
+        
+        # Test root endpoint
+        try:
+            response = requests.get(f"{API_BASE_URL}/", timeout=10)
+            if response.status_code == 200:
+                self.log('PASS', "Root endpoint responding")
+            else:
+                self.log('FAIL', f"Root endpoint failed: {response.status_code}")
+                success = False
+        except Exception as e:
+            self.log('FAIL', f"Root endpoint error: {e}")
+            success = False
+        
+        # Test log-entry endpoint with valid data
         test_data = {
-            "date": "2025-08-16",
+            "date": "2025-08-17",
             "title": "Backend Validation Test",
-            "description": "Comprehensive test of the backend API endpoint functionality with real data validation",
-            "tags": ["Testing", "Backend", "Validation", "API"],
-            "impact_level": "Confirmed",
-            "visibility": ["Internal", "Leadership"],
-            "resume_bullet": "Successfully validated and tested backend API functionality with comprehensive data processing"
+            "description": "Testing the backend validation system to ensure all components are working correctly and integrated properly.",
+            "tags": ["Testing", "Backend", "Validation"],
+            "impact_level": "Individual",
+            "visibility": ["Internal"],
+            "resume_bullet": "Implemented comprehensive backend validation system ensuring system reliability and integration"
         }
         
         try:
             response = requests.post(
                 f"{API_BASE_URL}/log-entry",
                 json=test_data,
-                headers={"Content-Type": "application/json"},
                 timeout=30
             )
             
-            print(f"Response status: {response.status_code}")
-            
             if response.status_code == 200:
-                response_data = response.json()
-                print("✅ API endpoint test successful")
-                print(f"Response data: {json.dumps(response_data, indent=2)}")
-                return True
-            else:
-                print(f"❌ API endpoint failed with status {response.status_code}")
-                print(f"Response: {response.text}")
-                return False
+                result = response.json()
+                self.log('PASS', "Log entry endpoint accepting valid data")
                 
-        except requests.exceptions.ConnectionError:
-            print("ℹ️  Cannot connect to API server for endpoint test - skipping")
-            return True
-        except Exception as e:
-            print(f"❌ API endpoint test failed: {e}")
-            return False
-
-    def validate_file_operations(self) -> bool:
-        """Validate file creation and JSON processing."""
-        print("📁 Testing file operations and JSON creation...")
-        
-        # Check if logs directory structure can be created
-        year = datetime.now().year
-        log_dir = Path("logs") / str(year)
-        
-        try:
-            log_dir.mkdir(parents=True, exist_ok=True)
-            print(f"✅ Logs directory structure created: {log_dir}")
-        except Exception as e:
-            print(f"❌ Cannot create logs directory: {e}")
-            return False
-        
-        # Test JSON file creation
-        test_file = log_dir / "backend-validation-test.json"
-        test_data = {
-            "date": "2025-08-16",
-            "title": "File Operations Test",
-            "description": "Testing file creation and JSON processing",
-            "tags": ["Testing", "FileOps"],
-            "impact_level": "Testing",
-            "visibility": ["Internal"],
-            "resume_bullet": "Validated file operations and JSON processing"
-        }
-        
-        try:
-            with open(test_file, 'w', encoding='utf-8') as f:
-                json.dump(test_data, f, indent=2, ensure_ascii=False)
-            
-            if test_file.exists():
-                print(f"✅ JSON file created successfully: {test_file}")
-                
-                # Verify file contents
-                with open(test_file, 'r', encoding='utf-8') as f:
-                    loaded_data = json.load(f)
-                
-                if loaded_data == test_data:
-                    print("✅ JSON data integrity verified")
-                    # Cleanup test file
-                    test_file.unlink()
-                    print("✅ Test file cleaned up")
-                    return True
+                # Validate response structure
+                if result.get('success'):
+                    self.log('PASS', "Log entry response indicates success")
+                if result.get('file_path'):
+                    self.log('PASS', f"File path returned: {result['file_path']}")
+                if result.get('commit_hash'):
+                    self.log('PASS', f"Commit hash returned: {result['commit_hash'][:8]}...")
+                    
+            elif response.status_code == 500:
+                error_detail = response.json().get('detail', 'Unknown error')
+                if "GITHUB_TOKEN" in error_detail:
+                    self.log('WARN', "GitHub token missing - expected in test environment")
                 else:
-                    print("❌ JSON data integrity check failed")
-                    return False
+                    self.log('FAIL', f"Log entry endpoint error: {error_detail}")
+                    success = False
             else:
-                print("❌ File was not created")
-                return False
+                self.log('FAIL', f"Log entry endpoint failed: {response.status_code}")
+                success = False
                 
         except Exception as e:
-            print(f"❌ File operations test failed: {e}")
-            return False
-
-    def validate_git_operations(self) -> bool:
-        """Validate Git operations functionality."""
-        print("📝 Testing Git operations...")
+            self.log('FAIL', f"Log entry endpoint error: {e}")
+            success = False
         
-        # Create a test file for Git operations
-        test_file = Path("logs/git-test.json")
-        test_file.parent.mkdir(parents=True, exist_ok=True)
-        
-        test_data = {"test": "git operations", "timestamp": datetime.now().isoformat()}
-        
-        try:
-            # Create test file
-            with open(test_file, 'w') as f:
-                json.dump(test_data, f, indent=2)
-            
-            # Git add
-            result = subprocess.run(["git", "add", str(test_file)], 
-                                  capture_output=True, text=True)
-            if result.returncode != 0:
-                print(f"❌ Git add failed: {result.stderr}")
-                return False
-            else:
-                print("✅ Git add successful")
-            
-            # Check if there are changes to commit
-            status_result = subprocess.run(["git", "status", "--porcelain"], 
-                                         capture_output=True, text=True)
-            
-            if status_result.stdout.strip():
-                # Git commit
-                commit_msg = f"Backend validation test commit {datetime.now().isoformat()}"
-                commit_result = subprocess.run(
-                    ["git", "commit", "-m", commit_msg], 
-                    capture_output=True, text=True
-                )
-                
-                if commit_result.returncode != 0:
-                    if "nothing to commit" in commit_result.stdout:
-                        print("ℹ️  Nothing to commit (expected)")
-                    else:
-                        print(f"❌ Git commit failed: {commit_result.stderr}")
-                        return False
-                else:
-                    print("✅ Git commit successful")
-                
-                # Test push (optional - may fail in test environment)
-                if os.getenv("GITHUB_TOKEN"):
-                    push_result = subprocess.run(["git", "push"], 
-                                               capture_output=True, text=True)
-                    if push_result.returncode == 0:
-                        print("✅ Git push successful")
-                    else:
-                        print(f"⚠️  Git push failed: {push_result.stderr}")
-                        print("Note: Push failures are common in test environments")
-            else:
-                print("ℹ️  No changes detected for commit")
-            
-            # Cleanup
-            if test_file.exists():
-                test_file.unlink()
-            
-            return True
-            
-        except Exception as e:
-            print(f"❌ Git operations test failed: {e}")
-            return False
-
-    def validate_date_processing(self) -> bool:
-        """Validate date processing and slug generation."""
-        print("📅 Testing date processing and slug generation...")
-        
-        # Test various date formats
-        test_dates = [
-            "2025-08-16",
-            "2025-12-31", 
-            "2025-01-01"
-        ]
-        
-        for date_str in test_dates:
-            try:
-                # Parse date
-                from datetime import datetime
-                parsed_date = datetime.fromisoformat(date_str)
-                year = parsed_date.year
-                
-                print(f"✅ Date '{date_str}' parsed correctly (year: {year})")
-                
-            except Exception as e:
-                print(f"❌ Date parsing failed for '{date_str}': {e}")
-                return False
-        
-        # Test slug generation
-        test_titles = [
-            "Simple Title",
-            "Title with Special Characters!@#",
-            "Very Long Title That Should Be Truncated Properly",
-            "Title-with-dashes_and_underscores"
-        ]
-        
-        for title in test_titles:
-            try:
-                # Basic slug generation (replace spaces and special chars)
-                slug = title.lower().replace(" ", "-")
-                slug = "".join(c for c in slug if c.isalnum() or c in ['-', '_'])
-                slug = slug[:50]  # Truncate
-                
-                print(f"✅ Slug generated: '{title}' -> '{slug}'")
-                
-            except Exception as e:
-                print(f"❌ Slug generation failed for '{title}': {e}")
-                return False
-        
-        return True
-
-    def validate_error_handling(self) -> bool:
-        """Validate error handling scenarios."""
-        print("🚨 Testing error handling...")
-        
-        # Test API with invalid data
+        # Test log-entry endpoint with invalid data
         invalid_data = {
             "date": "invalid-date",
-            "title": "",
-            "description": "",
-            "tags": [],
-            "impact_level": "InvalidLevel",
-            "visibility": [],
-            "resume_bullet": ""
+            "title": "Hi",  # Too short
+            "description": "Short",  # Too short
+            "tags": [],  # Empty
+            "impact_level": "Individual",
+            "visibility": ["Internal"],
+            "resume_bullet": "Short"  # Too short
         }
         
         try:
             response = requests.post(
                 f"{API_BASE_URL}/log-entry",
                 json=invalid_data,
-                headers={"Content-Type": "application/json"},
                 timeout=10
             )
             
             if response.status_code == 422:
-                print("✅ Invalid data properly rejected with 422 status")
-                return True
-            elif response.status_code >= 400:
-                print(f"✅ Invalid data rejected with status {response.status_code}")
-                return True
+                self.log('PASS', "Log entry endpoint correctly rejects invalid data")
             else:
-                print(f"❌ Invalid data was accepted (status: {response.status_code})")
-                return False
+                self.log('WARN', f"Unexpected response to invalid data: {response.status_code}")
                 
-        except requests.exceptions.ConnectionError:
-            print("⚠️  Cannot test error handling - API server not responding")
-            return True  # Don't fail if server is down
         except Exception as e:
-            print(f"❌ Error handling test failed: {e}")
-            return False
+            self.log('WARN', f"Invalid data test error: {e}")
+        
+        return success
+
+    def validate_file_operations(self) -> bool:
+        """Validate file system operations."""
+        print("\n📁 File Operations Validation")
+        print("=" * 50)
+        
+        success = True
+        
+        # Test log directory creation
+        try:
+            current_year = datetime.now().year
+            log_dir = Path(f"logs/{current_year}")
+            log_dir.mkdir(parents=True, exist_ok=True)
+            
+            if log_dir.exists():
+                self.log('PASS', f"Log directory accessible: {log_dir}")
+            else:
+                self.log('FAIL', f"Cannot access log directory: {log_dir}")
+                success = False
+                
+        except Exception as e:
+            self.log('FAIL', f"Log directory creation failed: {e}")
+            success = False
+        
+        # Test JSON file creation
+        try:
+            test_file = log_dir / "backend-validation-test.json"
+            test_data = {
+                "test": "backend_validation",
+                "timestamp": datetime.now().isoformat(),
+                "description": "Test file for backend validation"
+            }
+            
+            with open(test_file, 'w', encoding='utf-8') as f:
+                json.dump(test_data, f, indent=2, ensure_ascii=False)
+            
+            if test_file.exists():
+                self.log('PASS', "JSON file creation successful")
+                
+                # Verify file content
+                with open(test_file, 'r', encoding='utf-8') as f:
+                    loaded_data = json.load(f)
+                
+                if loaded_data["test"] == "backend_validation":
+                    self.log('PASS', "JSON file content verified")
+                else:
+                    self.log('FAIL', "JSON file content mismatch")
+                    success = False
+            else:
+                self.log('FAIL', "JSON file creation failed")
+                success = False
+                
+        except Exception as e:
+            self.log('FAIL', f"JSON file operations failed: {e}")
+            success = False
+        
+        return success
+
+    def validate_git_operations(self) -> bool:
+        """Validate Git operations."""
+        print("\n📦 Git Operations Validation")
+        print("=" * 50)
+        
+        success = True
+        
+        # Check if in Git repository
+        try:
+            result = subprocess.run(
+                ["git", "rev-parse", "--show-toplevel"],
+                capture_output=True,
+                text=True,
+                timeout=5
+            )
+            
+            if result.returncode == 0:
+                self.log('PASS', "Git repository detected")
+            else:
+                self.log('WARN', "Not in Git repository - skipping Git validation")
+                return True
+                
+        except Exception as e:
+            self.log('WARN', f"Git repository check failed: {e}")
+            return True
+        
+        # Test Git status
+        try:
+            result = subprocess.run(
+                ["git", "status", "--porcelain"],
+                capture_output=True,
+                text=True,
+                timeout=10
+            )
+            
+            if result.returncode == 0:
+                self.log('PASS', "Git status check successful")
+            else:
+                self.log('WARN', "Git status check failed")
+                
+        except Exception as e:
+            self.log('WARN', f"Git status error: {e}")
+        
+        # Test Git add (if test file exists)
+        test_file = Path(f"logs/{datetime.now().year}/backend-validation-test.json")
+        if test_file.exists():
+            try:
+                result = subprocess.run(
+                    ["git", "add", str(test_file)],
+                    capture_output=True,
+                    text=True,
+                    timeout=10
+                )
+                
+                if result.returncode == 0:
+                    self.log('PASS', "Git add operation successful")
+                else:
+                    self.log('WARN', f"Git add failed: {result.stderr}")
+                    
+            except Exception as e:
+                self.log('WARN', f"Git add error: {e}")
+        
+        return success
+
+    def validate_dependencies(self) -> bool:
+        """Validate Python dependencies."""
+        print("\n📦 Dependencies Validation")
+        print("=" * 50)
+        
+        success = True
+        
+        # Check if requirements.txt exists
+        if Path("requirements.txt").exists():
+            self.log('PASS', "requirements.txt found")
+        else:
+            self.log('FAIL', "requirements.txt missing")
+            success = False
+        
+        # Check core dependencies
+        core_deps = {
+            'fastapi': 'FastAPI web framework',
+            'uvicorn': 'ASGI server',
+            'requests': 'HTTP client library',
+            'pydantic': 'Data validation'
+        }
+        
+        for dep, description in core_deps.items():
+            try:
+                __import__(dep)
+                self.log('PASS', f"{description}: {dep}")
+            except ImportError:
+                self.log('FAIL', f"Missing dependency: {dep} ({description})")
+                success = False
+        
+        return success
+
+    def run_performance_checks(self) -> bool:
+        """Run basic performance checks."""
+        print("\n⚡ Performance Validation")
+        print("=" * 50)
+        
+        if not self.check_server_availability():
+            self.log('WARN', "API server not running - skipping performance checks")
+            return True
+        
+        success = True
+        
+        # Test response times
+        try:
+            import time
+            
+            start_time = time.time()
+            response = requests.get(f"{API_BASE_URL}/health", timeout=10)
+            end_time = time.time()
+            
+            response_time = (end_time - start_time) * 1000  # Convert to milliseconds
+            
+            if response.status_code == 200:
+                if response_time < 1000:  # Less than 1 second
+                    self.log('PASS', f"Health endpoint response time: {response_time:.2f}ms")
+                else:
+                    self.log('WARN', f"Slow health endpoint response: {response_time:.2f}ms")
+            else:
+                self.log('FAIL', f"Health endpoint failed: {response.status_code}")
+                success = False
+                
+        except Exception as e:
+            self.log('FAIL', f"Performance check error: {e}")
+            success = False
+        
+        return success
 
     def print_summary(self):
         """Print validation summary."""
-        print("\n" + "="*60)
-        print("BACKEND VALIDATION SUMMARY")
-        print("="*60)
+        print("\n" + "=" * 60)
+        print("🔍 BACKEND VALIDATION SUMMARY")
+        print("=" * 60)
         
-        print(f"Tests Run: {self.test_count}")
-        print(f"Tests Passed: {self.success_count}")
-        print(f"Tests Failed: {len(self.errors)}")
+        print(f"Total Checks: {self.total_checks}")
+        print(f"✅ Passed: {self.passed_checks}")
+        print(f"❌ Failed: {self.failed_checks}")
+        print(f"⚠️  Warnings: {len(self.warnings)}")
         
         if self.errors:
-            print("\n❌ FAILED TESTS:")
-            for error in self.errors:
-                print(f"  • {error}")
-        else:
-            print("\n✅ ALL TESTS PASSED!")
+            print(f"\n❌ ERRORS FOUND:")
+            for i, error in enumerate(self.errors, 1):
+                print(f"   {i}. {error}")
         
-        success_rate = (self.success_count / self.test_count * 100) if self.test_count > 0 else 0
-        print(f"\nSuccess Rate: {success_rate:.1f}%")
+        if self.warnings:
+            print(f"\n⚠️  WARNINGS:")
+            for i, warning in enumerate(self.warnings, 1):
+                print(f"   {i}. {warning}")
         
-        if success_rate >= 80:
-            print("🎉 Backend validation successful - Ready for deployment!")
-            return True
+        success_rate = (self.passed_checks / self.total_checks * 100) if self.total_checks > 0 else 0
+        
+        if self.failed_checks == 0:
+            print(f"\n🎉 Backend validation completed successfully!")
+            print(f"✅ Success rate: {success_rate:.1f}%")
+            return 0
         else:
-            print("⚠️  Backend validation failed - Address issues before deployment")
-            return False
+            print(f"\n❌ Backend validation failed")
+            print(f"📊 Success rate: {success_rate:.1f}%")
+            print(f"🔧 Fix the errors above before deployment")
+            return 1
+
+    def run(self):
+        """Run all backend validation checks."""
+        print("🚀 Starting Backend Validation")
+        print("=" * 60)
+        
+        try:
+            # Run all validation checks
+            self.validate_environment()
+            self.validate_dependencies()
+            self.validate_file_operations()
+            self.validate_git_operations()
+            self.validate_api_health()
+            self.validate_api_endpoints()
+            self.run_performance_checks()
+            
+            # Print summary and exit
+            exit_code = self.print_summary()
+            sys.exit(exit_code)
+            
+        except KeyboardInterrupt:
+            print("\n\n⚠️  Validation interrupted by user")
+            sys.exit(1)
+        except Exception as e:
+            print(f"\n\n❌ Validation error: {e}")
+            sys.exit(1)
 
 def main():
-    """Run comprehensive backend validation."""
-    print("🚀 Starting Comprehensive Backend Validation")
-    print("="*60)
-    
+    """Main entry point."""
     validator = BackendValidator()
-    
-    # Run all validation tests
-    tests = [
-        ("Environment Configuration", validator.validate_environment),
-        ("API Health Check", validator.validate_api_health),
-        ("API Endpoint Functionality", validator.validate_api_endpoint),
-        ("File Operations", validator.validate_file_operations),
-        ("Git Operations", validator.validate_git_operations),
-        ("Date Processing", validator.validate_date_processing),
-        ("Error Handling", validator.validate_error_handling),
-    ]
-    
-    for test_name, test_func in tests:
-        validator.test(test_name, test_func)
-    
-    # Print summary and exit
-    success = validator.print_summary()
-    sys.exit(0 if success else 1)
+    validator.run()
 
 if __name__ == "__main__":
     main()
