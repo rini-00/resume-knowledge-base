@@ -1,6 +1,6 @@
 # Pre-Deployment Checklist Docs Update
 
-## \*\* STEP 0.
+## **STEP 0.**
 
 Review every file in `claude-prompts` EXCEPT THIS ONE (`deployment-checklist-update.md`), and update each file that requires an update based on the scope of any code changes including new or updated files and functionality impacting any of these areas.
 
