@@ -1,17 +1,33 @@
-# zsh -x /Users/rinikrishnan/resume-knowledge-base/docs/run-profiles.zsh
-# zsh /Users/rinikrishnan/resume-knowledge-base/docs/run-profiles.zsh
+# zsh -x /path/to/repo/docs/run-profiles.zsh
+# zsh /path/to/repo/docs/run-profiles.zsh
 
+
+# Get the repo root directory
+REPO_ROOT=$(git rev-parse --show-toplevel)
 
 # ----- Clears old files in the run-logs folder to start fresh -----
 echo "Clearing old files in the run-logs directory..."
-rm -f /Users/rinikrishnan/resume-knowledge-base/docs/run-logs/*
+<<<<<<< HEAD
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+<<<<<<< HEAD
+REPO_ROOT="$(git -C "$SCRIPT_DIR" rev-parse --show-toplevel)"
+rm -f "$REPO_ROOT/docs/run-logs"/* 2>/dev/null || true
+=======
+find "$SCRIPT_DIR/run-logs" -type f -delete 2>/dev/null || true
+>>>>>>> origin/codex/review-and-resolve-run-logs-issues-8daegw
+=======
+rm -f "$REPO_ROOT/docs/run-logs/"*
+>>>>>>> origin/codex/review-and-resolve-run-logs-issues-jpv845
 
 # ----- Continue with the rest of the script -----
 set -euo pipefail
 
+<<<<<<< HEAD
 # Get the repo root directory
-REPO_ROOT=$(git rev-parse --show-toplevel)
+cd "$REPO_ROOT"
+=======
 cd $REPO_ROOT
+>>>>>>> origin/codex/review-and-resolve-run-logs-issues-jpv845
 
 # Define profiles and logs
 PROFILES_MD="$REPO_ROOT/docs/zsh-profiles.md"
@@ -48,7 +64,7 @@ echo "SUMMARY_FILE is set to: $SUMMARY_FILE"
 
 # Run the profile script generation...
 echo 'Running profile script generation...'
-zsh-script-gen > $GEN_LOG 2>&1
+zsh-script-gen > $GEN_LOG 2>&1 || true
 
 # Extract errors from the script generation log
 extract_errs() {
@@ -60,7 +76,7 @@ GEN_ERRS=$(extract_errs $GEN_LOG)
 
 # Run the validation script
 echo 'Running validation...'
-zsh-validation-run > $VAL_LOG 2>&1
+zsh-validation-run > $VAL_LOG 2>&1 || true
 
 # Extract errors from the validation log
 VAL_ERRS=$(extract_errs $VAL_LOG)
