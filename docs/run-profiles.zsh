@@ -4,7 +4,8 @@
 
 # ----- Clears old files in the run-logs folder to start fresh -----
 echo "Clearing old files in the run-logs directory..."
-rm -f /Users/rinikrishnan/resume-knowledge-base/docs/run-logs/*
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+find "$SCRIPT_DIR/run-logs" -type f -delete 2>/dev/null || true
 
 # ----- Continue with the rest of the script -----
 set -euo pipefail
