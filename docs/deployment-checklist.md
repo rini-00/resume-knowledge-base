@@ -1,6 +1,6 @@
 # Deployment Checklist: Pre-Deployment Commands (User Guide)
 
-## STEP 0##
+## STEP 0
 
 _Updates the docs (including this one) to make sure it is fully up to date before proceeding. Ensure all commits are staged and pushed before proceeding._
 
@@ -10,7 +10,7 @@ _Updates the docs (including this one) to make sure it is fully up to date befor
 
 ---
 
-## STEP 1 (OPTIONAL)##
+## STEP 1 (OPTIONAL)
 
 ## **script-gen**
 
@@ -32,7 +32,7 @@ _One-time script generation when adding new functionality_
 
 ---
 
-## STEP 2 (MANDATORY)##
+## STEP 2 (MANDATORY)
 
 ## **validation-run**
 
