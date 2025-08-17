@@ -1,6 +1,8 @@
 # Pre-Deployment Checklist Docs Update
 
-## ** STEP 0. Review every file in `claude-prompts`, and update each file that requires an update based on the scope of any code changes including new or updated files and functionality impacting any of these areas.**
+## \*\* STEP 0.
+
+Review every file in `claude-prompts` EXCEPT THIS ONE (`deployment-checklist-update.md`), and update each file that requires an update based on the scope of any code changes including new or updated files and functionality impacting any of these areas.
 
 ## **1. Update deployment-checklist.md**
 
@@ -18,7 +20,7 @@ The goal is to update the existing `deployment-checklist.md` file with a succinc
 - **Zsh Profile Command**:
   - A reference to the updated Zsh-profile command, to which these files will eventually be added, which will run all test/ util files for this section in one go.
 
-  1.2. **validation-run**:
+    1.2. **validation-run**:
 
 - **Description**: Pre-deployment prompt-based checks that must be run every time the codebase is updated (not scoped to just new functionality). This is executed holistically on all files in the repository, included within project files.
 - **When to run**: Run every time the codebase is updated.
@@ -69,4 +71,4 @@ The goal is to update both of the below sections in the existing `zsh-profiles.m
   - **Print a cumulative table of errors**: If errors are found, display them in a table format.
   - **Print a success message**: If no errors are encountered, print a simple message stating: _"All unit tests and validations have completed successfully. We are ready for UAT and/or deployment."_
 
-  3.3. If the `run-profiles.zsh` file was **empty** and a new one was generated as an artifact, explicitly instruct the user to **manually paste the generated Zsh script** into the `run-profiles.zsh` file, located in the `docs/` folder.
+    3.3. If the `run-profiles.zsh` file was **empty** and a new one was generated as an artifact, explicitly instruct the user to **manually paste the generated Zsh script** into the `run-profiles.zsh` file, located in the `docs/` folder.
