@@ -17,6 +17,9 @@ TOTAL_CHECKS=0
 PASSED_CHECKS=0
 FAILED_CHECKS=0
 
+# Separator line
+SEPARATOR=$(printf '=%.0s' {1..60})
+
 # Function to print colored output
 print_status() {
     local status=$1
@@ -317,9 +320,9 @@ validate_build_config() {
 
 # Function to print summary
 print_summary() {
-    echo -e "\n${'='*60}"
+    echo -e "\n${SEPARATOR}"
     echo -e "${BLUE}FRONTEND LINTING SUMMARY${NC}"
-    echo ${'='*60}
+    echo "$SEPARATOR"
     
     echo "Total Checks: $TOTAL_CHECKS"
     echo -e "${GREEN}Passed: $PASSED_CHECKS${NC}"
@@ -339,7 +342,7 @@ print_summary() {
 # Main execution
 main() {
     echo -e "${BLUE}🧹 Starting Frontend Linting${NC}"
-    echo ${'='*60}
+    echo "$SEPARATOR"
     
     # Install dependencies if needed
     install_dependencies
