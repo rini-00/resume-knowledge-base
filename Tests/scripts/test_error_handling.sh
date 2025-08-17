@@ -23,16 +23,16 @@ print_status() {
     local message=$2
     if [ "$status" = "PASS" ]; then
         echo -e "${GREEN}✅ $message${NC}"
-        ((PASSED_TESTS++))
+        ((PASSED_TESTS+=1))
     elif [ "$status" = "FAIL" ]; then
         echo -e "${RED}❌ $message${NC}"
-        ((FAILED_TESTS++))
+        ((FAILED_TESTS+=1))
     elif [ "$status" = "INFO" ]; then
         echo -e "${BLUE}ℹ️  $message${NC}"
     elif [ "$status" = "WARN" ]; then
         echo -e "${YELLOW}⚠️  $message${NC}"
     fi
-    ((TOTAL_TESTS++))
+    ((TOTAL_TESTS+=1))
 }
 
 # Function to create a divider of equal signs
@@ -314,9 +314,9 @@ test_frontend_errors() {
 
 # Function to print final summary
 print_summary() {
-    echo -e "\n${'='*60}"
-    echo -e "${BLUE}ERROR HANDLING TEST SUMMARY${NC}"
+    printf '\n'
     divider
+    echo -e "${BLUE}ERROR HANDLING TEST SUMMARY${NC}"
     
     echo "Total Tests: $TOTAL_TESTS"
     echo -e "${GREEN}Passed: $PASSED_TESTS${NC}"
