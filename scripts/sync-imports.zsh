@@ -1,10 +1,9 @@
+# zsh -x /Users/rinikrishnan/resume-knowledge-base/scripts/sync-imports.zsh
 
-# zsh /Users/rinikrishnan/resume-knowledge-base/scripts/sync-imports.zsh
+# ------Overwrite matching Markdown files in the current Git repo with contents from ~/Downloads/Imports. 
+# Matches are case-insensitive and treat underscores = dashes.-------
 
-
-# ----- Overwrite matching Markdown files in the current Git repo with contents from ~/Downloads/Imports. -----
-
-set -euo pipefail
+set -uo pipefail
 
 # ---- Config ----
 IMPORT_DIR="${HOME}/Downloads/Imports"
@@ -24,7 +23,7 @@ fi
 # Ensure Imports dir exists
 if [[ ! -d "${IMPORT_DIR}" ]]; then
   mkdir -p "${IMPORT_DIR}"
-  echo "Created ${IMPORT_DIR} (no files to import yet). Add Markdown files there and re-run."
+  echo "Created ${IMPORT_DIR}. Add Markdown files there and re-run."
   exit 0
 fi
 
@@ -54,12 +53,15 @@ count_updated=0
 count_skipped=0
 
 for imp in "${import_files[@]}"; do
-  base="${imp:t}"  # zsh: basename
+  base="${imp:t}"                  # basename, e.g. backend_validation.md
+  base_dash="${base//_/-}"         # convert underscores to dashes
+
   typeset -a matches
-  # Find all files named like the import's basename, exclude .git
+  # Case-insensitive search for either basename or underscore→dash variant
   while IFS= read -r -d '' m; do
     matches+=("$m")
-  done < <(find "${REPO_ROOT}" -path "${REPO_ROOT}/.git" -prune -o -type f -name "${base}" -print0)
+  done < <(find "${REPO_ROOT}" -path "${REPO_ROOT}/.git" -prune -o -type f \
+              \( -iname "${base}" -o -iname "${base_dash}" \) -print0)
 
   if (( ${#matches[@]} == 0 )); then
     echo "No matches found in repo for: ${base}"
@@ -69,7 +71,7 @@ for imp in "${import_files[@]}"; do
   for m in "${matches[@]}"; do
     (( count_total++ ))
 
-    # Skip self-overwrite if someone happens to run in a repo rooted under Downloads/Imports
+    # Skip self-overwrite if someone runs in ~/Downloads/Imports
     if [[ "${m}" == "${imp}" ]]; then
       echo "Skipping self: ${m}"
       (( count_skipped++ ))
@@ -77,18 +79,18 @@ for imp in "${import_files[@]}"; do
     fi
 
     # If identical, skip
-    if cmp -s -- "${imp}" "${m}"; then
+    if cmp -s "${imp}" "${m}"; then
       echo "Unchanged (already identical): ${m}"
       (( count_skipped++ ))
       continue
     fi
 
-    # Backup then overwrite (preserve target perms by writing contents only)
-    ts="$(date +%Y%m%d%H%M%S)"
-    backup="${m}.bak.${ts}"
-    cp -p -- "${m}" "${backup}" 2>/dev/null || cp -- "${m}" "${backup}" || true
+    cat "${imp}" > "${m}"
+    echo "Updated: ${m}  ←  ${imp}"
+    (( count_updated++ ))
 
-    if cat -- "${imp}" > "${m}"; then
+
+    if cat "${imp}" > "${m}"; then
       echo "Updated: ${m}  ←  ${imp}"
       (( count_updated++ ))
     else
