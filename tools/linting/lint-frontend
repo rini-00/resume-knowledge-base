@@ -317,9 +317,10 @@ validate_build_config() {
 
 # Function to print summary
 print_summary() {
-    echo -e "\n${'='*60}"
+    printf '\n'
+    printf '=%.0s' {1..60}; echo
     echo -e "${BLUE}FRONTEND LINTING SUMMARY${NC}"
-    echo ${'='*60}
+    printf '=%.0s' {1..60}; echo
     
     echo "Total Checks: $TOTAL_CHECKS"
     echo -e "${GREEN}Passed: $PASSED_CHECKS${NC}"
@@ -339,7 +340,7 @@ print_summary() {
 # Main execution
 main() {
     echo -e "${BLUE}🧹 Starting Frontend Linting${NC}"
-    echo ${'='*60}
+    printf '=%.0s' {1..60}; echo
     
     # Install dependencies if needed
     install_dependencies
